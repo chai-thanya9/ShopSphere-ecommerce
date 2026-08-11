@@ -250,25 +250,20 @@ exports.createFashion = async (req, res) => {
 // GET ALL FASHION PRODUCTS
 // ========================================
 
+// ========================================
+// GET ALL FASHION PRODUCTS
+// ========================================
+
 exports.getAllFashion = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
-
     const fashionProducts = await Fashion.findAll({
-      where: {
-        vendorId: vendor.id,
-      },
+      include: [
+        {
+          model: Vendor,
+          as: "vendor",
+          attributes: ["shopName", "vendorName"],
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
 
@@ -288,30 +283,21 @@ exports.getAllFashion = async (req, res) => {
   }
 };
 
-// ========================================
-// GET FASHION PRODUCT BY ID
-// ========================================
 
+// GET FASHION PRODUCT BY ID
 exports.getFashionById = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
-
     const fashion = await Fashion.findOne({
       where: {
         id: req.params.id,
-        vendorId: vendor.id,
       },
+      include: [
+        {
+          model: Vendor,
+          as: "vendor",
+          attributes: ["shopName", "vendorName"],
+        },
+      ],
     });
 
     if (!fashion) {

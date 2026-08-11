@@ -42,8 +42,6 @@ router.post(
 
 router.get(
   "/",
-  authenticate,
-  authorize("Vendor"),
   getAllFashion
 );
 
@@ -53,8 +51,6 @@ router.get(
 
 router.get(
   "/:id",
-  authenticate,
-  authorize("Vendor"),
   getFashionById
 );
 

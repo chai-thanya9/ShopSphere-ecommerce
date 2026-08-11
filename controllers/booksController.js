@@ -140,24 +140,15 @@ exports.createBook = async (req, res) => {
 // ========================================
 exports.getAllBooks = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
 
     const books = await Books.findAll({
-      where: {
-        vendorId: vendor.id,
-      },
-      order: [["createdAt", "DESC"]],
+    include: [
+        {
+          model: Vendor, 
+          as: "vendor",   
+        attributes: ["shopName", "vendorName"],
+        },
+      ],
     });
 
     return res.status(200).json({
@@ -181,23 +172,10 @@ exports.getAllBooks = async (req, res) => {
 // ========================================
 exports.getBookById = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
-
     const book = await Books.findOne({
       where: {
         id: req.params.id,
-        vendorId: vendor.id,
+        // vendorId: vendor.id,
       },
     });
 

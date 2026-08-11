@@ -49,8 +49,8 @@ router.get(
 // UPDATE
 router.put(
   "/:id",
-//   authenticate,
-//   authorize("Vendor"),
+  authenticate,
+  authorize("Vendor"),
   upload.array("coverImages", 10),
   updateBook
 );
