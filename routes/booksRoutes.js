@@ -33,24 +33,24 @@ router.post(
 // GET ALL
 router.get(
   "/",
-  authenticate,
-  authorize("Vendor"),
+//   authenticate,
+//   authorize("Vendor"),
   getAllBooks
 );
 
 // GET ONE
 router.get(
   "/:id",
-  authenticate,
-  authorize("Vendor"),
+//   authenticate,
+//   authorize("Vendor"),
   getBookById
 );
 
 // UPDATE
 router.put(
   "/:id",
-  authenticate,
-  authorize("Vendor"),
+//   authenticate,
+//   authorize("Vendor"),
   upload.array("coverImages", 10),
   updateBook
 );
@@ -61,8 +61,8 @@ router.put(
 
 router.patch(
   "/:id",
-  authenticate,
-  authorize("Vendor"),
+//   authenticate,
+//   authorize("Vendor"),
   upload.array("coverImages", 10),
   updateBook
 );
