@@ -2,21 +2,23 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  createBook,
-  getAllBooks,
-  getBookById,
-  updateBook,
-  deleteBook,
-} = require("../controllers/booksController");
+  createHome,
+  getAllHome,
+  getHomeById,
+  updateHome,
+  deleteHome,
+} = require("../controllers/homeController");
 
 const {
-  createBookValidation,
-} = require("../middleware/booksValidation");
+  createHomeValidation,
+  updateHomeValidation,
+} = require("../middleware/homeValidation");
 
 const validateRequest = require("../middleware/validationResult");
 
 const authenticate = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
+
 const upload = require("../middleware/uploads");
 
 // CREATE
@@ -24,26 +26,22 @@ router.post(
   "/create",
   authenticate,
   authorize("Vendor"),
-  upload.array("coverImages", 10),
-  createBookValidation,
+  upload.array("images", 10),
+  createHomeValidation,
   validateRequest,
-  createBook
+  createHome
 );
 
-// GET ALL
+// GET ALL — public
 router.get(
   "/",
-//   authenticate,
-//   authorize("Vendor"),
-  getAllBooks
+  getAllHome
 );
 
-// GET ONE
+// GET BY ID — public
 router.get(
   "/:id",
-//   authenticate,
-//   authorize("Vendor"),
-  getBookById
+  getHomeById
 );
 
 // UPDATE
@@ -51,20 +49,21 @@ router.put(
   "/:id",
   authenticate,
   authorize("Vendor"),
-  upload.array("coverImages", 10),
-  updateBook
+  upload.array("images", 10),
+  updateHomeValidation,
+  validateRequest,
+  updateHome
 );
 
-// ========================================
-// UPDATE BOOK - PATCH
-// ========================================
-
+// PATCH
 router.patch(
   "/:id",
   authenticate,
   authorize("Vendor"),
-  upload.array("coverImages", 10),
-  updateBook
+  upload.array("images", 10),
+  updateHomeValidation,
+  validateRequest,
+  updateHome
 );
 
 // DELETE
@@ -72,7 +71,7 @@ router.delete(
   "/:id",
   authenticate,
   authorize("Vendor"),
-  deleteBook
+  deleteHome
 );
 
 module.exports = router;

@@ -24,4 +24,5 @@ router.post("/send-otp", sendVendorOtp);
 router.post("/verify", verifyVendor);
 router.post("/login", vendorLogin);
 
+
 module.exports = router;

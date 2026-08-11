@@ -17,13 +17,13 @@ const Vendor = sequelize.define(
 
     businessType: {
       type: DataTypes.ENUM(
-        "Fashion",
-        "Electronics",
-        "Beauty",
-        "Home",
+        "Fashion", //1
+        "Electronics",//2
+        "Beauty",//3
+        "Home",//4
         "Appliances",
         "Furniture",
-        "Books",
+        "Books", ///5
         "Sports",
         "Health Care",
         "Groceries",

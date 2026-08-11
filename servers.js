@@ -14,6 +14,9 @@ const authRoutes = require("./routes/authRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
 const booksRoutes = require("./routes/booksRoutes");
 const fashionRoutes = require("./routes/fashionRoutes");
+const electronicsRoutes = require("./routes/electronicsRoutes");
+const beautyRoutes = require("./routes/beautyRoutes");
+const homeRoutes = require("./routes/homeRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 
 // Import all models + associations
@@ -29,6 +32,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/books", booksRoutes);
 app.use("/api/fashion", fashionRoutes);
+app.use("/api/electronics", electronicsRoutes);
+app.use("/api/beauty", beautyRoutes);
+app.use("/api/home", homeRoutes);
 app.use("/api/orders", orderRoutes);
 
 // Test Route

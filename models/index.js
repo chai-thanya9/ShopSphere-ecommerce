@@ -2,8 +2,12 @@ const User = require("./Users");
 const Vendor = require("./Vendor");
 const Books = require("./Books");
 const Fashion = require("./Fashion");
+const Electronics = require("./Electronics");
+const Beauty = require("./Beauty");
+const Home = require("./Home");
 const Orders = require("./Orders");
 const OrderItems = require("./OrderItems");
+
 
 // ========================================
 // USER ↔ VENDOR
@@ -55,15 +59,53 @@ Fashion.belongsTo(Vendor, {
   as: "vendor",
 });
 
-// ========================================
-// EXPORT
-// ========================================
+Vendor.hasMany(Electronics, {
+  foreignKey: "vendorId",
+  as: "electronics",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Electronics.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+// One Vendor → Many Beauty Products
+Vendor.hasMany(Beauty, {
+  foreignKey: "vendorId",
+  as: "beautyProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Beauty.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+Vendor.hasMany(Home, {
+  foreignKey: "vendorId",
+  as: "homeProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Home.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
 
 module.exports = {
   User,
   Vendor,
   Books,
   Fashion,
+  Home,
   Orders,
   OrderItems,
+  Electronics,
+  Beauty
 };
+  

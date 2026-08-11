@@ -296,9 +296,6 @@ exports.verifyVendor = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
     );
 
     // ==========================
@@ -441,9 +438,6 @@ exports.vendorLogin = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
     );
 
     // ==========================
