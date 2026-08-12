@@ -59,7 +59,7 @@ exports.adminLogin = async (req, res) => {
 // ========================================
 
 exports.registerUser = async (req, res) => {
-  const transaction = await sequelize.transaction();
+  let transaction;
 
   try {
     const {
@@ -76,16 +76,16 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     if (password !== confirmPassword) {
-      await transaction.rollback();
-
       return res.status(400).json({
         success: false,
         message: "Password and confirm password do not match",
       });
     }
 
+    transaction = await sequelize.transaction();
+
     // ========================================
-    // CHECK EXISTING EMAIL
+    // CHECK EMAIL
     // ========================================
 
     const existingEmail = await User.findOne({
@@ -96,14 +96,14 @@ exports.registerUser = async (req, res) => {
     if (existingEmail) {
       await transaction.rollback();
 
-      return res.status(409).json({
+      return res.status(400).json({
         success: false,
         message: "Email already registered",
       });
     }
 
     // ========================================
-    // CHECK EXISTING MOBILE
+    // CHECK MOBILE
     // ========================================
 
     const existingMobile = await User.findOne({
@@ -114,7 +114,7 @@ exports.registerUser = async (req, res) => {
     if (existingMobile) {
       await transaction.rollback();
 
-      return res.status(409).json({
+      return res.status(400).json({
         success: false,
         message: "Mobile number already registered",
       });
@@ -124,10 +124,13 @@ exports.registerUser = async (req, res) => {
     // HASH PASSWORD
     // ========================================
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
 
     // ========================================
-    // GENERATE OTP
+    // OTP
     // ========================================
 
     const emailOtp = generateOTP();
@@ -161,20 +164,47 @@ exports.registerUser = async (req, res) => {
     );
 
     // ========================================
-    // SEND EMAIL OTP
-    // ========================================
-
-    await sendEmailOtp(email, emailOtp);
-
-    // ========================================
-    // COMMIT DATABASE
+    // COMMIT DATABASE FIRST
     // ========================================
 
     await transaction.commit();
 
+    // ========================================
+    // SEND OTP AFTER DATABASE COMMIT
+    // ========================================
+
+    try {
+      await sendEmailOtp(email, emailOtp);
+    } catch (emailError) {
+      console.error(
+        "Email OTP Error:",
+        emailError
+      );
+
+      return res.status(201).json({
+        success: true,
+        message:
+          "Registration successful, but OTP email could not be sent.",
+        data: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          mobileNumber: user.mobileNumber,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+        },
+      });
+    }
+
+    // ========================================
+    // SUCCESS
+    // ========================================
+
     return res.status(201).json({
       success: true,
-      message: "User registered successfully. Email OTP sent.",
+      message:
+        "User registered successfully. Email OTP sent.",
       data: {
         id: user.id,
         firstName: user.firstName,
@@ -188,13 +218,22 @@ exports.registerUser = async (req, res) => {
 
   } catch (error) {
 
-    // ========================================
-    // ROLLBACK DATABASE
-    // ========================================
+    // Rollback only if transaction is still active
+    if (transaction) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error(
+          "Rollback Error:",
+          rollbackError
+        );
+      }
+    }
 
-    await transaction.rollback();
-
-    console.error("Register User Error:", error);
+    console.error(
+      "Register User Error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
