@@ -1,8 +1,10 @@
+// models/Toys.js
+
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Electronics = sequelize.define(
-  "Electronics",
+const Toys = sequelize.define(
+  "Toys",
   {
     // ========================================
     // PRIMARY KEY
@@ -40,61 +42,80 @@ const Electronics = sequelize.define(
 
     brandName: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
 
     category: {
       type: DataTypes.ENUM(
-        "Mobiles",
-        "Laptops",
-        "Tablets",
-        "Televisions",
-        "Audio",
-        "Cameras",
-        "Headphones",
-        "Smart Watches",
-        "Computer Accessories",
-        "Mobile Accessories",
-        "Home Appliances",
-        "Gaming",
-        "AC",
-        "Washing Machine",
-        "Refrigerator",
-        "Microwave Oven",
-        "Air Cooler",
-        "Water Geyser",
-        "Water Heater",
-        "Dishwasher",
-        "Vacuum Cleaner",
-        "Air Purifier",
-        "Room Heater",
-        "Water Purifier",
-        "Electric Oven",
-        "Clothes Dryer",
-        "Electric Chimney",
+        "Action Figures",
+        "Dolls",
+        "Remote Control",
+        "Educational",
+        "Building Blocks",
+        "Board Games",
+        "Puzzles",
+        "Soft Toys",
+        "Outdoor Toys",
+        "Baby Toys",
+        "Vehicles",
+        "Musical Toys",
+        "Pretend Play",
+        "Arts & Crafts",
+        "STEM Toys",
         "Other"
       ),
       allowNull: false,
     },
 
-    modelNumber: {
+    subCategory: {
       type: DataTypes.STRING,
       allowNull: true,
     },
 
-    description: {
+    productDescription: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: true,
     },
 
     // ========================================
-    // SPECIFICATIONS
+    // AGE GROUP
     // ========================================
 
-    specifications: {
-      type: DataTypes.JSONB,
+    ageGroup: {
+      type: DataTypes.ENUM(
+        "0-3 Months",
+        "3-6 Months",
+        "6-12 Months",
+        "1-2 Years",
+        "2-4 Years",
+        "4-6 Years",
+        "6-8 Years",
+        "8-12 Years",
+        "12+ Years"
+      ),
       allowNull: true,
-      defaultValue: {},
+    },
+
+    // ========================================
+    // GENDER
+    // ========================================
+
+    gender: {
+      type: DataTypes.ENUM(
+        "Boys",
+        "Girls",
+        "Unisex"
+      ),
+      defaultValue: "Unisex",
+    },
+
+    // ========================================
+    // MATERIAL
+    // ========================================
+
+    material: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
 
     // ========================================
@@ -132,20 +153,27 @@ const Electronics = sequelize.define(
       defaultValue: 20,
     },
 
+    criticalStockLimit: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 5,
+    },
+
     stockStatus: {
       type: DataTypes.ENUM(
         "In Stock",
         "Low Stock",
+        "Critical Stock",
         "Out of Stock"
       ),
-      defaultValue: "Out of Stock",
+      defaultValue: "In Stock",
     },
 
     // ========================================
     // IMAGES
     // ========================================
 
-    images: {
+    imageUrls: {
       type: DataTypes.ARRAY(DataTypes.TEXT),
       allowNull: true,
       defaultValue: [],
@@ -188,9 +216,9 @@ const Electronics = sequelize.define(
     },
   },
   {
-    tableName: "electronics_products",
+    tableName: "toy_products",
     timestamps: true,
   }
 );
 
-module.exports = Electronics;
+module.exports = Toys;

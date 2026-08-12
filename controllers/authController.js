@@ -5,6 +5,7 @@ const User = require("../models/Users");
 const jwt = require("jsonwebtoken");
 const { generateOTP } = require("../utils/otpGenerator");
 const { sendEmailOtp } = require("../utils/sendEmail");
+const sequelize = require("../config/database");
 
 exports.adminLogin = async (req, res) => {
   try {
@@ -58,6 +59,8 @@ exports.adminLogin = async (req, res) => {
 // ========================================
 
 exports.registerUser = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const {
       firstName,
@@ -73,6 +76,8 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     if (password !== confirmPassword) {
+      await transaction.rollback();
+
       return res.status(400).json({
         success: false,
         message: "Password and confirm password do not match",
@@ -84,12 +89,13 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     const existingEmail = await User.findOne({
-      where: {
-        email,
-      },
+      where: { email },
+      transaction,
     });
 
     if (existingEmail) {
+      await transaction.rollback();
+
       return res.status(409).json({
         success: false,
         message: "Email already registered",
@@ -101,12 +107,13 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     const existingMobile = await User.findOne({
-      where: {
-        mobileNumber,
-      },
+      where: { mobileNumber },
+      transaction,
     });
 
     if (existingMobile) {
+      await transaction.rollback();
+
       return res.status(409).json({
         success: false,
         message: "Mobile number already registered",
@@ -120,7 +127,7 @@ exports.registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // ========================================
-    // GENERATE EMAIL OTP
+    // GENERATE OTP
     // ========================================
 
     const emailOtp = generateOTP();
@@ -133,37 +140,41 @@ exports.registerUser = async (req, res) => {
     // CREATE USER
     // ========================================
 
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      mobileNumber,
+    const user = await User.create(
+      {
+        firstName,
+        lastName,
+        email,
+        mobileNumber,
+        password: hashedPassword,
 
-      password: hashedPassword,
+        role: "Customer",
 
-      // role is NOT sent by frontend
-      // Database default = Customer
-      role: "Customer",
+        emailOtp,
+        emailOtpExpires,
 
-      emailOtp,
-      emailOtpExpires,
-
-      isEmailVerified: false,
-    });
+        isEmailVerified: false,
+      },
+      {
+        transaction,
+      }
+    );
 
     // ========================================
     // SEND EMAIL OTP
     // ========================================
 
-    await sendEmailOtp(
-      email,
-      emailOtp
-    );
+    await sendEmailOtp(email, emailOtp);
+
+    // ========================================
+    // COMMIT DATABASE
+    // ========================================
+
+    await transaction.commit();
 
     return res.status(201).json({
       success: true,
-      message:
-        "User registered successfully. Email OTP sent.",
+      message: "User registered successfully. Email OTP sent.",
       data: {
         id: user.id,
         firstName: user.firstName,
@@ -174,12 +185,20 @@ exports.registerUser = async (req, res) => {
         isEmailVerified: user.isEmailVerified,
       },
     });
+
   } catch (error) {
+
+    // ========================================
+    // ROLLBACK DATABASE
+    // ========================================
+
+    await transaction.rollback();
+
     console.error("Register User Error:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: "Registration failed",
       error: error.message,
     });
   }

@@ -20,6 +20,13 @@ const homeRoutes = require("./routes/homeRoutes");
 const appliancesRoutes = require("./routes/appliancesRoutes");
 const furnitureRoutes = require("./routes/furnitureRoutes");
 const sportsRoutes = require("./routes/sportsRoutes");
+const healthCareRoutes = require("./routes/healthCareRoutes");
+const groceriesRoutes = require("./routes/groceriesRoutes");
+const toysRoutes = require("./routes/toysRoutes");
+const stationeryRoutes = require("./routes/stationeryRoutes");
+const musicalInstrumentsRoutes = require("./routes/musicalInstrumentsRoutes");
+const artsCraftsRoutes = require("./routes/artsCraftsRoutes");
+
 
 
 const orderRoutes = require("./routes/orderRoutes");
@@ -43,6 +50,12 @@ app.use("/api/home", homeRoutes);
 app.use("/api/appliances", appliancesRoutes);
 app.use("/api/furniture", furnitureRoutes);
 app.use("/api/sports", sportsRoutes);
+app.use("/api/healthcare", healthCareRoutes);
+app.use("/api/groceries", groceriesRoutes);
+app.use("/api/toys", toysRoutes);
+app.use("/api/stationery", stationeryRoutes);
+app.use("/api/musical-instruments", musicalInstrumentsRoutes);
+app.use("/api/arts-crafts", artsCraftsRoutes);
 app.use("/api/orders", orderRoutes);
 
 // Test Route

@@ -1,8 +1,10 @@
+// models/ArtsCrafts.js
+
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Electronics = sequelize.define(
-  "Electronics",
+const ArtsCrafts = sequelize.define(
+  "ArtsCrafts",
   {
     // ========================================
     // PRIMARY KEY
@@ -40,61 +42,51 @@ const Electronics = sequelize.define(
 
     brandName: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
 
     category: {
       type: DataTypes.ENUM(
-        "Mobiles",
-        "Laptops",
-        "Tablets",
-        "Televisions",
-        "Audio",
-        "Cameras",
-        "Headphones",
-        "Smart Watches",
-        "Computer Accessories",
-        "Mobile Accessories",
-        "Home Appliances",
-        "Gaming",
-        "AC",
-        "Washing Machine",
-        "Refrigerator",
-        "Microwave Oven",
-        "Air Cooler",
-        "Water Geyser",
-        "Water Heater",
-        "Dishwasher",
-        "Vacuum Cleaner",
-        "Air Purifier",
-        "Room Heater",
-        "Water Purifier",
-        "Electric Oven",
-        "Clothes Dryer",
-        "Electric Chimney",
+        "Drawing",
+        "Painting",
+        "Coloring",
+        "Sketching",
+        "Craft Materials",
+        "DIY Kits",
+        "Paper Crafts",
+        "Clay & Modeling",
+        "Handicrafts",
+        "Sculpting",
+        "Calligraphy",
+        "Craft Tools",
+        "Art Sets",
         "Other"
       ),
       allowNull: false,
     },
 
-    modelNumber: {
+    subCategory: {
       type: DataTypes.STRING,
       allowNull: true,
     },
 
-    description: {
+    productDescription: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: true,
     },
 
     // ========================================
-    // SPECIFICATIONS
+    // PRODUCT DETAILS
     // ========================================
 
-    specifications: {
-      type: DataTypes.JSONB,
+    material: {
+      type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: {},
+    },
+
+    color: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
 
     // ========================================
@@ -132,20 +124,27 @@ const Electronics = sequelize.define(
       defaultValue: 20,
     },
 
+    criticalStockLimit: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 5,
+    },
+
     stockStatus: {
       type: DataTypes.ENUM(
         "In Stock",
         "Low Stock",
+        "Critical Stock",
         "Out of Stock"
       ),
-      defaultValue: "Out of Stock",
+      defaultValue: "In Stock",
     },
 
     // ========================================
     // IMAGES
     // ========================================
 
-    images: {
+    imageUrls: {
       type: DataTypes.ARRAY(DataTypes.TEXT),
       allowNull: true,
       defaultValue: [],
@@ -188,9 +187,9 @@ const Electronics = sequelize.define(
     },
   },
   {
-    tableName: "electronics_products",
+    tableName: "arts_crafts_products",
     timestamps: true,
   }
 );
 
-module.exports = Electronics;
+module.exports = ArtsCrafts;

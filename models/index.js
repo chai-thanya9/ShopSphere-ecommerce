@@ -8,6 +8,14 @@ const Home = require("./Home");
 const Appliances = require("./Appliances");
 const Furniture = require("./Furniture");
 const Sports = require("./Sports");
+const HealthCare = require("./HealthCare");
+const Groceries = require("./Groceries");
+const Toys = require("./Toys");
+const Stationery = require("./Stationery");
+const MusicalInstruments = require("./MusicalInstruments");
+const ArtsCrafts = require("./ArtsCrafts");
+
+
 const Orders = require("./Orders");
 const OrderItems = require("./OrderItems");
 
@@ -144,6 +152,88 @@ Sports.belongsTo(Vendor, {
   as: "vendor",
 });
 
+Vendor.hasMany(HealthCare, {
+  foreignKey: "vendorId",
+  as: "healthCareProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+HealthCare.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+
+Vendor.hasMany(Groceries, {
+  foreignKey: "vendorId",
+  as: "groceryProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Groceries.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+// VENDOR ↔ TOYS
+// ========================================
+
+Vendor.hasMany(Toys, {
+  foreignKey: "vendorId",
+  as: "toyProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Toys.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+// VENDOR ↔ STATIONERY
+Vendor.hasMany(Stationery, {
+  foreignKey: "vendorId",
+  as: "stationeryProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Stationery.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+// VENDOR ↔ MUSICAL INSTRUMENTS
+// ========================================
+
+Vendor.hasMany(MusicalInstruments, {
+  foreignKey: "vendorId",
+  as: "musicalInstruments",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+MusicalInstruments.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+// VENDOR ↔ ARTS & CRAFTS
+// ========================================
+
+Vendor.hasMany(ArtsCrafts, {
+  foreignKey: "vendorId",
+  as: "artsCraftsProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+ArtsCrafts.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
 
 
 
@@ -160,5 +250,9 @@ module.exports = {
   Appliances,
   Furniture,
   Sports,
+  HealthCare,
+  Groceries,
+  Toys,
+  Stationery,
 };
   
