@@ -95,6 +95,212 @@ exports.createVendor = async (req, res) => {
   }
 };
 
+// ========================================
+// GET ALL VENDORS
+// Admin
+// ========================================
+
+exports.getAllVendors = async (req, res) => {
+  try {
+    const vendors = await Vendor.findAll({
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "email",
+            "mobileNumber",
+            "role",
+            "isEmailVerified",
+            "isMobileVerified",
+            "isActive",
+            "lastLogin",
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: vendors.length,
+      data: vendors,
+    });
+  } catch (error) {
+    console.error("Get All Vendors Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
+
+// ========================================
+// GET VENDOR BY ID
+// Admin
+// ========================================
+
+exports.getVendorById = async (req, res) => {
+  try {
+    const vendor = await Vendor.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "email",
+            "mobileNumber",
+            "role",
+            "isEmailVerified",
+            "isMobileVerified",
+            "isActive",
+            "lastLogin",
+          ],
+        },
+      ],
+    });
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: vendor,
+    });
+  } catch (error) {
+    console.error("Get Vendor By ID Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
+
+// ========================================
+// UPDATE VENDOR
+// Admin
+// ========================================
+
+exports.updateVendor = async (req, res) => {
+  try {
+    const vendor = await Vendor.findByPk(req.params.id);
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    const {
+      vendorName,
+      businessType,
+      shopName,
+      status,
+      isVerified,
+    } = req.body;
+
+    await vendor.update({
+      vendorName:
+        vendorName !== undefined
+          ? vendorName
+          : vendor.vendorName,
+
+      businessType:
+        businessType !== undefined
+          ? businessType
+          : vendor.businessType,
+
+      shopName:
+        shopName !== undefined
+          ? shopName
+          : vendor.shopName,
+
+      status:
+        status !== undefined
+          ? status
+          : vendor.status,
+
+      isVerified:
+        isVerified !== undefined
+          ? isVerified
+          : vendor.isVerified,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor updated successfully",
+      data: vendor,
+    });
+  } catch (error) {
+    console.error("Update Vendor Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
+
+// ========================================
+// DELETE VENDOR
+// Admin
+// ========================================
+
+exports.deleteVendor = async (req, res) => {
+  try {
+    const vendor = await Vendor.findByPk(req.params.id);
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    const userId = vendor.userId;
+
+    await vendor.destroy();
+
+    await User.destroy({
+      where: {
+        id: userId,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Vendor Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
 // ======================================
 // Vendor Send OTP
 // ======================================

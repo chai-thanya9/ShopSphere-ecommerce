@@ -21,8 +21,8 @@ const Vendor = sequelize.define(
         "Electronics",//2
         "Beauty",//3
         "Home",//4
-        "Appliances",
-        "Furniture",
+        "Appliances",//6
+        "Furniture",//7
         "Books", ///5
         "Sports",
         "Health Care",

@@ -9,9 +9,18 @@ const {
   sendVendorOtp,
   verifyVendor,
   vendorLogin,
+
+  getAllVendors,
+  getVendorById,
+  updateVendor,
+  deleteVendor,
 } = require("../controllers/vendorController");
 
-// Admin
+// ========================================
+// ADMIN
+// ========================================
+
+// CREATE VENDOR
 router.post(
   "/create",
   authenticate,
@@ -19,10 +28,58 @@ router.post(
   createVendor
 );
 
-// Vendor
-router.post("/send-otp", sendVendorOtp);
-router.post("/verify", verifyVendor);
-router.post("/login", vendorLogin);
+// GET ALL VENDORS
+router.get(
+  "/",
+  authenticate,
+  authorize("Admin"),
+  getAllVendors
+);
 
+// GET VENDOR BY ID
+router.get(
+  "/:id",
+  authenticate,
+  authorize("Admin"),
+  getVendorById
+);
+
+// UPDATE VENDOR
+router.patch(
+  "/:id",
+  authenticate,
+  authorize("Admin"),
+  updateVendor
+);
+
+// DELETE VENDOR
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("Admin"),
+  deleteVendor
+);
+
+// ========================================
+// VENDOR
+// ========================================
+
+// SEND OTP
+router.post(
+  "/send-otp",
+  sendVendorOtp
+);
+
+// VERIFY VENDOR
+router.post(
+  "/verify",
+  verifyVendor
+);
+
+// VENDOR LOGIN
+router.post(
+  "/login",
+  vendorLogin
+);
 
 module.exports = router;

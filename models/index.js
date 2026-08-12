@@ -5,6 +5,9 @@ const Fashion = require("./Fashion");
 const Electronics = require("./Electronics");
 const Beauty = require("./Beauty");
 const Home = require("./Home");
+const Appliances = require("./Appliances");
+const Furniture = require("./Furniture");
+const Sports = require("./Sports");
 const Orders = require("./Orders");
 const OrderItems = require("./OrderItems");
 
@@ -83,7 +86,7 @@ Beauty.belongsTo(Vendor, {
   foreignKey: "vendorId",
   as: "vendor",
 });
-
+// One Vendor → Many Home Products
 Vendor.hasMany(Home, {
   foreignKey: "vendorId",
   as: "homeProducts",
@@ -96,6 +99,53 @@ Home.belongsTo(Vendor, {
   as: "vendor",
 });
 
+// VENDOR ↔ APPLIANCES
+Vendor.hasMany(Appliances, {
+  foreignKey: "vendorId",
+  as: "applianceProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Appliances.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+
+// VENDOR ↔ FURNITURE
+// ========================================
+
+Vendor.hasMany(Furniture, {
+  foreignKey: "vendorId",
+  as: "furnitureProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Furniture.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+// ========================================
+// VENDOR ↔ SPORTS
+// ========================================
+
+Vendor.hasMany(Sports, {
+  foreignKey: "vendorId",
+  as: "sportsProducts",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Sports.belongsTo(Vendor, {
+  foreignKey: "vendorId",
+  as: "vendor",
+});
+
+
+
 
 module.exports = {
   User,
@@ -106,6 +156,9 @@ module.exports = {
   Orders,
   OrderItems,
   Electronics,
-  Beauty
+  Beauty,
+  Appliances,
+  Furniture,
+  Sports,
 };
   
