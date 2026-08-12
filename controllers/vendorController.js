@@ -99,7 +99,6 @@ exports.createVendor = async (req, res) => {
 // GET ALL VENDORS
 // Admin
 // ========================================
-
 exports.getAllVendors = async (req, res) => {
   try {
     const vendors = await Vendor.findAll({
@@ -115,7 +114,6 @@ exports.getAllVendors = async (req, res) => {
             "mobileNumber",
             "role",
             "isEmailVerified",
-            "isMobileVerified",
             "isActive",
             "lastLogin",
           ],
@@ -141,6 +139,8 @@ exports.getAllVendors = async (req, res) => {
 };
 
 
+
+
 // ========================================
 // GET VENDOR BY ID
 // Admin
@@ -160,8 +160,6 @@ exports.getVendorById = async (req, res) => {
             "email",
             "mobileNumber",
             "role",
-            "isEmailVerified",
-            "isMobileVerified",
             "isActive",
             "lastLogin",
           ],
