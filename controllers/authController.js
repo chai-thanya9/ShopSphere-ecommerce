@@ -78,9 +78,14 @@ exports.registerUser = async (req, res) => {
     if (password !== confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: "Password and confirm password do not match",
+        message:
+          "Password and confirm password do not match",
       });
     }
+
+    // ========================================
+    // START TRANSACTION
+    // ========================================
 
     transaction = await sequelize.transaction();
 
@@ -89,12 +94,15 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     const existingEmail = await User.findOne({
-      where: { email },
+      where: {
+        email,
+      },
       transaction,
     });
 
     if (existingEmail) {
       await transaction.rollback();
+      transaction = null;
 
       return res.status(400).json({
         success: false,
@@ -107,16 +115,20 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     const existingMobile = await User.findOne({
-      where: { mobileNumber },
+      where: {
+        mobileNumber,
+      },
       transaction,
     });
 
     if (existingMobile) {
       await transaction.rollback();
+      transaction = null;
 
       return res.status(400).json({
         success: false,
-        message: "Mobile number already registered",
+        message:
+          "Mobile number already registered",
       });
     }
 
@@ -130,7 +142,7 @@ exports.registerUser = async (req, res) => {
     );
 
     // ========================================
-    // OTP
+    // GENERATE OTP
     // ========================================
 
     const emailOtp = generateOTP();
@@ -164,27 +176,46 @@ exports.registerUser = async (req, res) => {
     );
 
     // ========================================
-    // COMMIT DATABASE FIRST
+    // COMMIT DATABASE
     // ========================================
 
     await transaction.commit();
 
+    transaction = null;
+
+    console.log(
+      "User registered in database:",
+      user.email
+    );
+
     // ========================================
-    // SEND OTP AFTER DATABASE COMMIT
+    // SEND EMAIL OTP
     // ========================================
 
     try {
-      await sendEmailOtp(email, emailOtp);
+      await sendEmailOtp(
+        user.email,
+        emailOtp
+      );
+
+      console.log(
+        "OTP email sent successfully:",
+        user.email
+      );
+
     } catch (emailError) {
+
       console.error(
-        "Email OTP Error:",
+        "EMAIL OTP ERROR:",
         emailError
       );
 
       return res.status(201).json({
         success: true,
+
         message:
           "Registration successful, but OTP email could not be sent.",
+
         data: {
           id: user.id,
           firstName: user.firstName,
@@ -192,7 +223,8 @@ exports.registerUser = async (req, res) => {
           email: user.email,
           mobileNumber: user.mobileNumber,
           role: user.role,
-          isEmailVerified: user.isEmailVerified,
+          isEmailVerified:
+            user.isEmailVerified,
         },
       });
     }
@@ -203,8 +235,10 @@ exports.registerUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
+
       message:
         "User registered successfully. Email OTP sent.",
+
       data: {
         id: user.id,
         firstName: user.firstName,
@@ -212,13 +246,17 @@ exports.registerUser = async (req, res) => {
         email: user.email,
         mobileNumber: user.mobileNumber,
         role: user.role,
-        isEmailVerified: user.isEmailVerified,
+        isEmailVerified:
+          user.isEmailVerified,
       },
     });
 
   } catch (error) {
 
-    // Rollback only if transaction is still active
+    // ========================================
+    // ROLLBACK
+    // ========================================
+
     if (transaction) {
       try {
         await transaction.rollback();
