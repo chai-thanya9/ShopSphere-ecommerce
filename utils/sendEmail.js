@@ -1,5 +1,7 @@
 // // utils/sendEmail.js
 const nodemailer = require("nodemailer");
+const axios = require("axios");
+
 
 // const sendEmailOtp = async (email, otp) => {
 //   try {
@@ -319,6 +321,74 @@ const sendVendorRegistrationEmail = async ({
   }
 };
 
+
+
+// ========================================
+// SEND CUSTOMER OTP EMAIL
+// ========================================
+
+const sendCustomerOtpEmail = async (email, otp) => {
+  try {
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "ShopSphere",
+          email: process.env.BREVO_SENDER_EMAIL,
+        },
+
+        to: [
+          {
+            email: email,
+          },
+        ],
+
+        subject: "ShopSphere Email Verification OTP",
+
+        htmlContent: `
+          <h2>Welcome to ShopSphere</h2>
+
+          <p>Your email verification OTP is:</p>
+
+          <h1>${otp}</h1>
+
+          <p>This OTP is valid for <b>10 minutes</b>.</p>
+
+          <p>Please do not share this OTP with anyone.</p>
+
+          <p>Thank you,<br>ShopSphere Team</p>
+        `,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(
+      "Customer OTP Email Sent:",
+      response.data
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.error(
+      "Brevo API Error:",
+      error.response?.data || error.message
+    );
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message
+    );
+  }
+};
+
+
 module.exports = {
   sendVendorRegistrationEmail,
+  sendCustomerOtpEmail,
 };

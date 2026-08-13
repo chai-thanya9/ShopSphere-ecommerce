@@ -282,7 +282,7 @@ exports.registerUser = async (req, res) => {
 };
 
 // ========================================
-// VERIFY EMAIL OTP
+// send EMAIL OTP
 // ========================================
 exports.sendEmailOtp = async (req, res) => {
   try {
@@ -318,7 +318,7 @@ exports.sendEmailOtp = async (req, res) => {
     }
 
     // ========================================
-    // CHECK ALREADY VERIFIED
+    // CHECK VERIFIED
     // ========================================
 
     if (user.isEmailVerified) {
@@ -329,7 +329,7 @@ exports.sendEmailOtp = async (req, res) => {
     }
 
     // ========================================
-    // GENERATE NEW OTP
+    // GENERATE OTP
     // ========================================
 
     const emailOtp = generateOTP();
@@ -348,12 +348,16 @@ exports.sendEmailOtp = async (req, res) => {
     await user.save();
 
     // ========================================
-    // SEND OTP EMAIL
+    // SEND EMAIL
     // ========================================
 
     try {
-      await sendEmailOtp(email, emailOtp);
+      await sendCustomerOtpEmail(
+        email,
+        emailOtp
+      );
     } catch (emailError) {
+
       console.error(
         "Customer OTP Email Error:",
         emailError
@@ -361,7 +365,8 @@ exports.sendEmailOtp = async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        message: "OTP generated but email could not be sent",
+        message:
+          "OTP generated but email could not be sent",
         error: emailError.message,
       });
     }
