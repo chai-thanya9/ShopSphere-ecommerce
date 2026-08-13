@@ -1,123 +1,156 @@
 // utils/sendEmail.js
-
 const nodemailer = require("nodemailer");
 
-// ========================================
-// SMTP TRANSPORTER
-// ========================================
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// ========================================
-// SMTP DEBUG
-// ========================================
-
-console.log("SMTP CONFIG:", {
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  emailUser: process.env.EMAIL_USER,
-});
-
-// ========================================
-// VERIFY SMTP CONNECTION
-// ========================================
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("SMTP Connection Error:", error);
-  } else {
-    console.log("SMTP Server Ready:", success);
-  }
-});
-
-// ========================================
-// SEND EMAIL OTP
-// ========================================
-
 const sendEmailOtp = async (email, otp) => {
-  await transporter.sendMail({
-    from: `"ShopSphere" <${process.env.EMAIL_USER}>`,
+  try {
+    const response = await fetch(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        method: "POST",
 
-    to: email,
+        headers: {
+          accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+        },
 
-    subject: "ShopSphere Email Verification OTP",
+        body: JSON.stringify({
+          sender: {
+            name: process.env.BREVO_SENDER_NAME || "ShopSphere",
+            email: process.env.BREVO_SENDER_EMAIL,
+          },
 
-    html: `
-      <h2>Welcome to ShopSphere</h2>
+          to: [
+            {
+              email: email,
+            },
+          ],
 
-      <p>Your email verification OTP is:</p>
+          subject: "ShopSphere Email Verification OTP",
 
-      <h1 style="color:blue;">
-        ${otp}
-      </h1>
+          htmlContent: `
+            <div>
+              <h2>Welcome to ShopSphere</h2>
 
-      <p>
-        This OTP is valid for <b>10 minutes</b>.
-      </p>
+              <p>Your email verification OTP is:</p>
 
-      <p>
-        Please do not share this OTP with anyone.
-      </p>
+              <h1>${otp}</h1>
 
-      <p>
-        Thank you,<br>
-        ShopSphere Team
-      </p>
-    `,
-  });
+              <p>This OTP is valid for <b>10 minutes</b>.</p>
+
+              <p>Please do not share this OTP with anyone.</p>
+
+              <p>Thank you,<br>
+              ShopSphere Team</p>
+            </div>
+          `,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Brevo API Error:", data);
+
+      throw new Error(
+        data.message || "Brevo email sending failed"
+      );
+    }
+
+    console.log("OTP email sent successfully:", data);
+
+    return data;
+
+  } catch (error) {
+    console.error("Brevo Email Error:", error);
+
+    throw error;
+  }
 };
 
+
 // ========================================
-// SEND TEMPORARY PASSWORD
+// TEMPORARY PASSWORD
 // ========================================
 
 const sendTemporaryPassword = async (
   email,
   password
 ) => {
-  await transporter.sendMail({
-    from: `"ShopSphere" <${process.env.EMAIL_USER}>`,
+  try {
+    const response = await fetch(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        method: "POST",
 
-    to: email,
+        headers: {
+          accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+        },
 
-    subject: "ShopSphere Vendor Account Password",
+        body: JSON.stringify({
+          sender: {
+            name: process.env.BREVO_SENDER_NAME || "ShopSphere",
+            email: process.env.BREVO_SENDER_EMAIL,
+          },
 
-    html: `
-      <h2>Welcome to ShopSphere</h2>
+          to: [
+            {
+              email: email,
+            },
+          ],
 
-      <p>
-        Your vendor account has been successfully verified.
-      </p>
+          subject: "ShopSphere Vendor Account Password",
 
-      <p>
-        Your temporary password is:
-      </p>
+          htmlContent: `
+            <div>
+              <h2>Welcome to ShopSphere</h2>
 
-      <h2 style="color:blue;">
-        ${password}
-      </h2>
+              <p>Your vendor account has been successfully verified.</p>
 
-      <p>
-        Please keep this password secure.
-      </p>
+              <p>Your temporary password is:</p>
 
-      <p>
-        Thank you,<br>
-        ShopSphere Team
-      </p>
-    `,
-  });
+              <h2>${password}</h2>
+
+              <p>Please keep this password secure.</p>
+
+              <p>Thank you,<br>
+              ShopSphere Team</p>
+            </div>
+          `,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Brevo API Error:", data);
+
+      throw new Error(
+        data.message || "Brevo email sending failed"
+      );
+    }
+
+    console.log(
+      "Temporary password email sent successfully:",
+      data
+    );
+
+    return data;
+
+  } catch (error) {
+    console.error(
+      "Brevo Temporary Password Error:",
+      error
+    );
+
+    throw error;
+  }
 };
+
 
 module.exports = {
   sendEmailOtp,
