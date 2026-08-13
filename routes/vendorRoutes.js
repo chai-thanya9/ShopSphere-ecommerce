@@ -1,4 +1,5 @@
 const express = require("express");
+
 const router = express.Router();
 
 const authenticate = require("../middleware/authMiddleware");
@@ -6,7 +7,6 @@ const authorize = require("../middleware/roleMiddleware");
 
 const {
   createVendor,
-  sendVendorOtp,
   verifyVendor,
   vendorLogin,
 
@@ -16,11 +16,17 @@ const {
   deleteVendor,
 } = require("../controllers/vendorController");
 
+
 // ========================================
 // ADMIN
 // ========================================
 
+
+// ========================================
 // CREATE VENDOR
+// Admin only
+// ========================================
+
 router.post(
   "/create",
   authenticate,
@@ -28,7 +34,12 @@ router.post(
   createVendor
 );
 
+
+// ========================================
 // GET ALL VENDORS
+// Admin only
+// ========================================
+
 router.get(
   "/",
   authenticate,
@@ -36,7 +47,12 @@ router.get(
   getAllVendors
 );
 
+
+// ========================================
 // GET VENDOR BY ID
+// Admin only
+// ========================================
+
 router.get(
   "/:id",
   authenticate,
@@ -44,7 +60,12 @@ router.get(
   getVendorById
 );
 
+
+// ========================================
 // UPDATE VENDOR
+// Admin only
+// ========================================
+
 router.patch(
   "/:id",
   authenticate,
@@ -52,7 +73,12 @@ router.patch(
   updateVendor
 );
 
+
+// ========================================
 // DELETE VENDOR
+// Admin only
+// ========================================
+
 router.delete(
   "/:id",
   authenticate,
@@ -60,26 +86,32 @@ router.delete(
   deleteVendor
 );
 
+
 // ========================================
 // VENDOR
 // ========================================
 
-// SEND OTP
-router.post(
-  "/send-otp",
-  sendVendorOtp
-);
 
+// ========================================
 // VERIFY VENDOR
+// Public
+// ========================================
+
 router.post(
   "/verify",
   verifyVendor
 );
 
+
+// ========================================
 // VENDOR LOGIN
+// Public
+// ========================================
+
 router.post(
   "/login",
   vendorLogin
 );
+
 
 module.exports = router;
