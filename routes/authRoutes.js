@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   adminLogin,
   registerUser,
+  sendEmailOtp,
   verifyEmailOtp,
   loginUser,
 } = require("../controllers/authController");
@@ -24,6 +25,11 @@ router.post(
 router.post(
   "/register",
   registerUser
+);
+
+router.post(
+  "/send-otp",
+  sendEmailOtp
 );
 
 // ========================================

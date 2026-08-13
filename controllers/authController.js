@@ -284,6 +284,116 @@ exports.registerUser = async (req, res) => {
 // ========================================
 // VERIFY EMAIL OTP
 // ========================================
+exports.sendEmailOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // ========================================
+    // CHECK EMAIL
+    // ========================================
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // ========================================
+    // FIND CUSTOMER
+    // ========================================
+
+    const user = await User.findOne({
+      where: {
+        email,
+        role: "Customer",
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    // ========================================
+    // CHECK ALREADY VERIFIED
+    // ========================================
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+
+    // ========================================
+    // GENERATE NEW OTP
+    // ========================================
+
+    const emailOtp = generateOTP();
+
+    const emailOtpExpires = new Date(
+      Date.now() + 10 * 60 * 1000
+    );
+
+    // ========================================
+    // SAVE OTP
+    // ========================================
+
+    user.emailOtp = emailOtp;
+    user.emailOtpExpires = emailOtpExpires;
+
+    await user.save();
+
+    // ========================================
+    // SEND OTP EMAIL
+    // ========================================
+
+    try {
+      await sendEmailOtp(email, emailOtp);
+    } catch (emailError) {
+      console.error(
+        "Customer OTP Email Error:",
+        emailError
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: "OTP generated but email could not be sent",
+        error: emailError.message,
+      });
+    }
+
+    // ========================================
+    // SUCCESS
+    // ========================================
+
+    return res.status(200).json({
+      success: true,
+      message: "Email OTP sent successfully",
+      data: {
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+      },
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Send Customer OTP Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send email OTP",
+      error: error.message,
+    });
+  }
+}; 
+
 
 exports.verifyEmailOtp = async (req, res) => {
   try {
