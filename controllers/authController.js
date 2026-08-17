@@ -4,7 +4,7 @@ const generateToken = require("../utils/generateToken");
 const User = require("../models/Users");
 const jwt = require("jsonwebtoken");
 const { generateOTP } = require("../utils/otpGenerator");
-const { sendEmailOtp } = require("../utils/sendEmail");
+const { sendCustomerOtpEmail, sendVendorRegistrationEmail } = require("../utils/sendEmail");
 const sequelize = require("../config/database");
 
 exports.adminLogin = async (req, res) => {
@@ -193,7 +193,7 @@ exports.registerUser = async (req, res) => {
     // ========================================
 
     try {
-      await sendEmailOtp(
+      await sendCustomerOtpEmail    (
         user.email,
         emailOtp
       );
