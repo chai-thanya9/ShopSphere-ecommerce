@@ -1,6 +1,8 @@
 const Appliances = require("../models/Appliances");
 const Vendor = require("../models/Vendor");
 const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
+const {readBulkFile,} = require("../utils/bulkUpload");
 
 // ========================================
 // CREATE APPLIANCE
@@ -470,6 +472,417 @@ exports.deleteAppliances = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
+
+
+
+
+// ========================================
+// BULK UPLOAD APPLIANCES
+// CSV + EXCEL
+// ========================================
+
+exports.bulkUploadAppliances = async (
+  req,
+  res
+) => {
+  try {
+
+    // ========================================
+    // CHECK FILE
+    // ========================================
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "CSV or Excel file is required",
+      });
+    }
+
+    console.log(
+      "Bulk file:",
+      req.file.originalname
+    );
+
+
+    // ========================================
+    // READ FILE
+    // ========================================
+
+    const rows = await readBulkFile(
+      req.file.path
+    );
+
+
+    if (!rows || rows.length === 0) {
+
+      fs.unlinkSync(req.file.path);
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Uploaded file is empty",
+      });
+    }
+
+
+    // ========================================
+    // PROCESS ROWS
+    // ========================================
+
+    const validProducts = [];
+
+    const errors = [];
+
+
+    rows.forEach((row, index) => {
+
+      const rowNumber = index + 2;
+
+
+      // ======================================
+      // GET VALUES
+      // ======================================
+
+      const vendorId =
+        String(row.vendorId || "").trim();
+
+      const productName =
+        String(row.productName || "").trim();
+
+      const brand =
+        String(row.brand || "").trim();
+
+      const modelNumber =
+        String(row.modelNumber || "").trim();
+
+      const category =
+        String(row.category || "").trim();
+
+      const subCategory =
+        String(row.subCategory || "").trim();
+
+      const description =
+        String(row.description || "").trim();
+
+      const price =
+        Number(row.price);
+
+      const discountPrice =
+        row.discountPrice === ""
+          ? null
+          : Number(row.discountPrice);
+
+      const stock =
+        Number(row.stock);
+
+      const sku =
+        String(row.sku || "").trim();
+
+      const warranty =
+        String(row.warranty || "").trim();
+
+      const color =
+        String(row.color || "").trim();
+
+      const capacity =
+        String(row.capacity || "").trim();
+
+      const powerConsumption =
+        String(
+          row.powerConsumption || ""
+        ).trim();
+
+      const energyRating =
+        String(
+          row.energyRating || ""
+        ).trim();
+
+      const images =
+        String(row.images || "").trim();
+
+      const status =
+        String(
+          row.status || "Active"
+        ).trim();
+
+
+      // ======================================
+      // REQUIRED VALIDATION
+      // ======================================
+
+      if (!vendorId) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "vendorId is required",
+        });
+
+        return;
+      }
+
+
+      if (!productName) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "productName is required",
+        });
+
+        return;
+      }
+
+
+      if (!brand) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "brand is required",
+        });
+
+        return;
+      }
+
+
+      if (!modelNumber) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "modelNumber is required",
+        });
+
+        return;
+      }
+
+
+      // ======================================
+      // CATEGORY VALIDATION
+      // ======================================
+
+      if (
+        category.toLowerCase() !==
+        "appliances"
+      ) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "Category must be Appliances",
+        });
+
+        return;
+      }
+
+
+      // ======================================
+      // PRICE VALIDATION
+      // ======================================
+
+      if (
+        !Number.isFinite(price) ||
+        price <= 0
+      ) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "price must be greater than 0",
+        });
+
+        return;
+      }
+
+
+      // ======================================
+      // DISCOUNT PRICE
+      // ======================================
+
+      if (
+        discountPrice !== null &&
+        (!Number.isFinite(
+          discountPrice
+        ) ||
+          discountPrice < 0)
+      ) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "discountPrice is invalid",
+        });
+
+        return;
+      }
+
+
+      // ======================================
+      // STOCK
+      // ======================================
+
+      if (
+        !Number.isInteger(stock) ||
+        stock < 0
+      ) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "stock must be a non-negative integer",
+        });
+
+        return;
+      }
+
+
+      // ======================================
+      // SKU
+      // ======================================
+
+      if (!sku) {
+        errors.push({
+          row: rowNumber,
+          message:
+            "sku is required",
+        });
+
+        return;
+      }
+
+
+      // ======================================
+      // VALID PRODUCT
+      // ======================================
+
+      validProducts.push({
+        vendorId,
+        productName,
+        brand,
+        modelNumber,
+        category,
+        subCategory,
+        description,
+        price,
+        discountPrice,
+        stock,
+        sku,
+        warranty,
+        color,
+        capacity,
+        powerConsumption,
+        energyRating,
+        images,
+        status,
+      });
+
+    });
+
+
+    // ========================================
+    // REMOVE TEMPORARY FILE
+    // ========================================
+
+    fs.unlink(
+      req.file.path,
+      (error) => {
+        if (error) {
+          console.error(
+            "File delete error:",
+            error
+          );
+        }
+      }
+    );
+
+
+    // ========================================
+    // NOTHING VALID
+    // ========================================
+
+    if (
+      validProducts.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "No valid products found",
+        data: {
+          totalRows: rows.length,
+          successful: 0,
+          failed: errors.length,
+        },
+        errors,
+      });
+    }
+
+
+    // ========================================
+    // BULK INSERT
+    // ========================================
+
+    const createdProducts =
+      await Appliances.bulkCreate(
+        validProducts,
+        {
+          validate: true,
+        }
+      );
+
+
+    // ========================================
+    // RESPONSE
+    // ========================================
+
+    return res.status(201).json({
+      success: true,
+
+      message:
+        "Appliances bulk upload completed",
+
+      data: {
+        category: "Appliances",
+
+        totalRows: rows.length,
+
+        successful:
+          createdProducts.length,
+
+        failed: errors.length,
+      },
+
+      errors,
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Appliances Bulk Upload Error:",
+      error
+    );
+
+
+    // ========================================
+    // REMOVE FILE
+    // ========================================
+
+    if (req.file?.path) {
+      try {
+        fs.unlinkSync(
+          req.file.path
+        );
+      } catch (fileError) {
+        console.error(
+          "File cleanup error:",
+          fileError
+        );
+      }
+    }
+
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Appliances bulk upload failed",
       error: error.message,
     });
   }

@@ -30,9 +30,7 @@ const Vendor = sequelize.define(
         "Toys",//11
         "Stationery",//12
         "Musical Instruments",//13
-        "Arts & Crafts", //14
-        "Mobiles",
-        "Others"
+        "Arts & Crafts" //14
       ),
       allowNull: false,
     },

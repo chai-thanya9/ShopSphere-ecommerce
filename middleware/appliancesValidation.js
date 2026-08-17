@@ -145,3 +145,47 @@ exports.updateAppliancesValidation = [
     .isInt({ min: 0 })
     .withMessage("Critical stock limit cannot be negative"),
 ];
+
+exports.validateAppliancesBulkUpload = (
+  req,
+  res,
+  next
+) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "CSV or Excel file is required",
+    });
+  }
+
+  const allowedTypes = [
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ];
+
+  const allowedExtensions = [
+    ".csv",
+    ".xls",
+    ".xlsx",
+  ];
+
+  const fileName =
+    req.file.originalname.toLowerCase();
+
+  const hasValidExtension =
+    allowedExtensions.some((extension) =>
+      fileName.endsWith(extension)
+    );
+
+  if (!hasValidExtension) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Only CSV, XLS or XLSX files are allowed",
+    });
+  }
+
+  next();
+};

@@ -1,6 +1,12 @@
 const express = require("express");
+const multer = require("multer");
 
 const router = express.Router();
+
+
+// ========================================
+// CONTROLLERS
+// ========================================
 
 const {
   createAppliances,
@@ -8,19 +14,47 @@ const {
   getApplianceById,
   updateAppliances,
   deleteAppliances,
+  bulkUploadAppliances,
 } = require("../controllers/appliancesController");
+
+
+// ========================================
+// VALIDATION
+// ========================================
 
 const {
   createAppliancesValidation,
   updateAppliancesValidation,
+  validateAppliancesBulkUpload,
 } = require("../middleware/appliancesValidation");
 
 const validateRequest = require("../middleware/validationResult");
 
+
+// ========================================
+// AUTHENTICATION
+// ========================================
+
 const authenticate = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
 
+
+// ========================================
+// IMAGE UPLOAD
+// ========================================
+
 const upload = require("../middleware/uploads");
+
+
+// ========================================
+// BULK FILE UPLOAD
+// CSV / EXCEL
+// ========================================
+
+const bulkUpload = multer({
+  dest: "uploads/bulk/",
+});
+
 
 // ========================================
 // CREATE APPLIANCE
@@ -37,9 +71,26 @@ router.post(
   createAppliances
 );
 
+
+// ========================================
+// BULK UPLOAD APPLIANCES
+// CSV / XLS / XLSX
+// Vendor only
+// ========================================
+
+router.post(
+  "/bulk-upload",
+  authenticate,
+  authorize("Vendor"),
+  bulkUpload.single("file"),
+  validateAppliancesBulkUpload,
+  bulkUploadAppliances
+);
+
+
 // ========================================
 // GET ALL APPLIANCES
-// Customer / Public
+// Public
 // ========================================
 
 router.get(
@@ -47,15 +98,17 @@ router.get(
   getAllAppliances
 );
 
+
 // ========================================
 // GET APPLIANCE BY ID
-// Customer / Public
+// Public
 // ========================================
 
 router.get(
   "/:id",
   getApplianceById
 );
+
 
 // ========================================
 // UPDATE APPLIANCE
@@ -72,6 +125,7 @@ router.put(
   updateAppliances
 );
 
+
 // ========================================
 // PATCH APPLIANCE
 // Vendor only
@@ -87,6 +141,7 @@ router.patch(
   updateAppliances
 );
 
+
 // ========================================
 // DELETE APPLIANCE
 // Vendor only
@@ -98,5 +153,6 @@ router.delete(
   authorize("Vendor"),
   deleteAppliances
 );
+
 
 module.exports = router;
