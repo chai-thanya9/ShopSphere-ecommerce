@@ -56,12 +56,13 @@ exports.createVendor = async (req, res) => {
       !vendorName ||
       !email ||
       !businessType ||
+      !mobileNumber ||
       !shopName
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "vendorName, email, businessType and shopName are required",
+          "vendorName, email, businessType, mobileNumber and shopName are required",
       });
     }
 
@@ -79,6 +80,23 @@ exports.createVendor = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Vendor email already registered",
+      });
+    }
+
+    // ========================================
+    // CHECK EXISTING MOBILE
+    // ========================================
+
+    const existingMobile = await Vendor.findOne({
+      where: {
+        mobileNumber,
+      },
+    });
+
+    if (existingMobile) {
+      return res.status(400).json({
+        success: false,
+        message: "Vendor mobile number already registered",
       });
     }
 
@@ -103,18 +121,16 @@ exports.createVendor = async (req, res) => {
     // HASH PASSWORD
     // ========================================
 
-    const hashedPassword =
-      await bcrypt.hash(
-        temporaryPassword,
-        10
-      );
+    const hashedPassword = await bcrypt.hash(
+      temporaryPassword,
+      10
+    );
 
     // ========================================
     // START TRANSACTION
     // ========================================
 
-    transaction =
-      await sequelize.transaction();
+    transaction = await sequelize.transaction();
 
     // ========================================
     // CREATE VENDOR
@@ -124,9 +140,11 @@ exports.createVendor = async (req, res) => {
       {
         vendorName,
 
-        role: "vendor",
+        role: "Vendor",
 
         email,
+
+        mobileNumber,
 
         password: hashedPassword,
 
@@ -178,6 +196,9 @@ exports.createVendor = async (req, res) => {
         shopName:
           vendor.shopName,
 
+        mobileNumber:
+          vendor.mobileNumber,
+
         otp: emailOtp,
 
         temporaryPassword,
@@ -212,6 +233,9 @@ exports.createVendor = async (req, res) => {
 
           email:
             vendor.email,
+
+          mobileNumber:
+            vendor.mobileNumber,
 
           businessType:
             vendor.businessType,
@@ -250,6 +274,9 @@ exports.createVendor = async (req, res) => {
 
         email:
           vendor.email,
+
+        mobileNumber:
+          vendor.mobileNumber,
 
         businessType:
           vendor.businessType,
