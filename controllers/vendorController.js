@@ -353,7 +353,7 @@ exports.verifyVendor = async (req, res) => {
     const vendor = await Vendor.findOne({
       where: {
         email: email,
-        role: "vendor",
+        role: "Vendor",
       },
     });
 

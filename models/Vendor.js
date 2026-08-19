@@ -24,7 +24,7 @@ const Vendor = sequelize.define(
     role: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "vendor",
+      defaultValue: "Vendor",
     },
 
 
