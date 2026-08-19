@@ -2,17 +2,11 @@
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
 const User = require("../models/Users");
 const Vendor = require("../models/Vendor");
-
 const sequelize = require("../config/database");
-
 const { generateOTP } = require("../utils/otpGenerator");
-
-const {
-  sendVendorRegistrationEmail,
-} = require("../utils/sendEmail");
+const { sendVendorRegistrationEmail,} = require("../utils/sendEmail");
 
 
 // ========================================
@@ -47,77 +41,46 @@ exports.createVendor = async (req, res) => {
 
   try {
     const {
-      firstName,
-      lastName,
-      email,
-      mobileNumber,
       vendorName,
+      email,
       businessType,
+      mobileNumber,
       shopName,
-      dateOfBirth,
     } = req.body;
-
 
     // ========================================
     // REQUIRED FIELDS
     // ========================================
 
     if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !mobileNumber ||
       !vendorName ||
+      !email ||
       !businessType ||
       !shopName
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "All required vendor fields are required",
+          "vendorName, email, businessType and shopName are required",
       });
     }
 
-
     // ========================================
-    // CHECK EMAIL
+    // CHECK EXISTING VENDOR EMAIL
     // ========================================
 
-    const existingEmail =
-      await User.findOne({
-        where: {
-          email,
-        },
-      });
+    const existingVendor = await Vendor.findOne({
+      where: {
+        email,
+      },
+    });
 
-    if (existingEmail) {
+    if (existingVendor) {
       return res.status(400).json({
         success: false,
-        message:
-          "Email already registered",
+        message: "Vendor email already registered",
       });
     }
-
-
-    // ========================================
-    // CHECK MOBILE
-    // ========================================
-
-    const existingMobile =
-      await User.findOne({
-        where: {
-          mobileNumber,
-        },
-      });
-
-    if (existingMobile) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Mobile number already registered",
-      });
-    }
-
 
     // ========================================
     // GENERATE OTP
@@ -129,14 +92,12 @@ exports.createVendor = async (req, res) => {
       Date.now() + 10 * 60 * 1000
     );
 
-
     // ========================================
     // GENERATE TEMPORARY PASSWORD
     // ========================================
 
     const temporaryPassword =
       generateTemporaryPassword();
-
 
     // ========================================
     // HASH PASSWORD
@@ -148,7 +109,6 @@ exports.createVendor = async (req, res) => {
         10
       );
 
-
     // ========================================
     // START TRANSACTION
     // ========================================
@@ -156,49 +116,29 @@ exports.createVendor = async (req, res) => {
     transaction =
       await sequelize.transaction();
 
-
-    // ========================================
-    // CREATE USER
-    // ========================================
-
-    const user = await User.create(
-      {
-        firstName,
-        lastName,
-        email,
-        mobileNumber,
-
-        password: hashedPassword,
-
-        role: "Vendor",
-
-        emailOtp,
-        emailOtpExpires,
-
-        isEmailVerified: false,
-      },
-      {
-        transaction,
-      }
-    );
-
-
     // ========================================
     // CREATE VENDOR
     // ========================================
 
     const vendor = await Vendor.create(
       {
-        userId: user.id,
-
         vendorName,
+
+        role: "vendor",
+
+        email,
+
+        password: hashedPassword,
+
+        emailOtp,
+
+        emailOtpExpires,
+
+        isEmailVerified: false,
 
         businessType,
 
         shopName,
-
-        dateOfBirth:
-          dateOfBirth || null,
 
         status: "Pending",
 
@@ -209,36 +149,44 @@ exports.createVendor = async (req, res) => {
       }
     );
 
-
     // ========================================
-    // COMMIT
+    // COMMIT TRANSACTION
     // ========================================
 
     await transaction.commit();
 
     transaction = null;
 
-
     console.log(
-      "Vendor created in database:",
-      email
+      "Vendor created successfully:",
+      vendor.email
     );
 
-
     // ========================================
-    // SEND EMAIL
+    // SEND REGISTRATION EMAIL
     // ========================================
 
     try {
       await sendVendorRegistrationEmail({
-        email,
-        vendorName,
-        businessType,
-        shopName,
-        mobileNumber,
+        email: vendor.email,
+
+        vendorName: vendor.vendorName,
+
+        businessType:
+          vendor.businessType,
+
+        shopName:
+          vendor.shopName,
+
         otp: emailOtp,
+
         temporaryPassword,
       });
+
+      console.log(
+        "Vendor registration email sent:",
+        vendor.email
+      );
 
     } catch (emailError) {
 
@@ -254,24 +202,34 @@ exports.createVendor = async (req, res) => {
           "Vendor created successfully, but registration email could not be sent.",
 
         data: {
-          userId: user.id,
           vendorId: vendor.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          mobileNumber: user.mobileNumber,
-          vendorName: vendor.vendorName,
-          businessType: vendor.businessType,
-          shopName: vendor.shopName,
-          status: vendor.status,
-          isVerified: vendor.isVerified,
+
+          vendorName:
+            vendor.vendorName,
+
+          role:
+            vendor.role,
+
+          email:
+            vendor.email,
+
+          businessType:
+            vendor.businessType,
+
+          shopName:
+            vendor.shopName,
+
+          status:
+            vendor.status,
+
+          isVerified:
+            vendor.isVerified,
         },
       });
     }
 
-
     // ========================================
-    // SUCCESS
+    // SUCCESS RESPONSE
     // ========================================
 
     return res.status(201).json({
@@ -281,25 +239,40 @@ exports.createVendor = async (req, res) => {
         "Vendor registration completed successfully. OTP and temporary password sent to vendor email.",
 
       data: {
-        userId: user.id,
-        vendorId: vendor.id,
+        vendorId:
+          vendor.id,
 
-        firstName: user.firstName,
-        lastName: user.lastName,
+        vendorName:
+          vendor.vendorName,
 
-        email: user.email,
-        mobileNumber: user.mobileNumber,
+        role:
+          vendor.role,
 
-        vendorName: vendor.vendorName,
-        businessType: vendor.businessType,
-        shopName: vendor.shopName,
+        email:
+          vendor.email,
 
-        status: vendor.status,
-        isVerified: vendor.isVerified,
+        businessType:
+          vendor.businessType,
+
+        shopName:
+          vendor.shopName,
+
+        status:
+          vendor.status,
+
+        isVerified:
+          vendor.isVerified,
+
+        isEmailVerified:
+          vendor.isEmailVerified,
       },
     });
 
   } catch (error) {
+
+    // ========================================
+    // ROLLBACK
+    // ========================================
 
     if (transaction) {
       try {
@@ -325,61 +298,75 @@ exports.createVendor = async (req, res) => {
   }
 };
 
-
 // ========================================
 // VERIFY VENDOR
 // ========================================
 
 exports.verifyVendor = async (req, res) => {
   try {
-    const {
-      email,
-      emailOtp,
-    } = req.body;
-
+    const { email, emailOtp } = req.body;
 
     // ========================================
-    // FIND USER
+    // VALIDATE INPUT
     // ========================================
 
-    const user = await User.findOne({
+    if (!email || !emailOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required",
+      });
+    }
+
+    // ========================================
+    // FIND VENDOR
+    // Table: vendors
+    // Role: Vendor
+    // ========================================
+
+    const vendor = await Vendor.findOne({
       where: {
-        email,
-        role: "Vendor",
+        email: email,
+        role: "vendor",
       },
     });
 
-    if (!user) {
+    if (!vendor) {
       return res.status(404).json({
         success: false,
         message: "Vendor not found",
       });
     }
 
-
     // ========================================
-    // CHECK OTP
+    // CHECK ALREADY VERIFIED
     // ========================================
 
-    if (
-      !user.emailOtp ||
-      user.emailOtp !== emailOtp
-    ) {
+    if (vendor.isEmailVerified) {
       return res.status(400).json({
         success: false,
-        message: "Invalid OTP",
+        message: "Vendor email is already verified",
       });
     }
 
+    // ========================================
+    // CHECK OTP EXISTS
+    // ========================================
+
+    if (!vendor.emailOtp) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "OTP not found. Please request a new OTP",
+      });
+    }
 
     // ========================================
-    // CHECK OTP EXPIRY
+    // CHECK OTP EXPIRATION
     // ========================================
 
     if (
-      !user.emailOtpExpires ||
-      new Date() >
-        new Date(user.emailOtpExpires)
+      !vendor.emailOtpExpires ||
+      new Date() > new Date(vendor.emailOtpExpires)
     ) {
       return res.status(400).json({
         success: false,
@@ -387,69 +374,67 @@ exports.verifyVendor = async (req, res) => {
       });
     }
 
-
     // ========================================
-    // UPDATE USER
-    // ========================================
-
-    user.isEmailVerified = true;
-
-    user.emailOtp = null;
-    user.emailOtpExpires = null;
-
-    await user.save();
-
-
-    // ========================================
-    // FIND VENDOR
+    // COMPARE OTP
     // ========================================
 
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
+    if (
+      String(vendor.emailOtp) !==
+      String(emailOtp)
+    ) {
+      return res.status(400).json({
         success: false,
-        message: "Vendor record not found",
+        message: "Invalid OTP",
       });
     }
 
-
     // ========================================
-    // UPDATE VENDOR
+    // VERIFY VENDOR
     // ========================================
 
+    vendor.isEmailVerified = true;
     vendor.isVerified = true;
+
+    vendor.status = "Approved";
+
+    vendor.emailVerifiedAt = new Date();
+
+    // ========================================
+    // CLEAR OTP
+    // ========================================
+
+    vendor.emailOtp = null;
+    vendor.emailOtpExpires = null;
+
+    // ========================================
+    // SAVE VENDOR
+    // ========================================
 
     await vendor.save();
 
-
     // ========================================
-    // RESPONSE
+    // SUCCESS RESPONSE
     // ========================================
 
     return res.status(200).json({
       success: true,
-
-      message:
-        "Vendor verified successfully",
+      message: "Vendor email verified successfully",
 
       data: {
-        userId: user.id,
         vendorId: vendor.id,
-        email: user.email,
-        isEmailVerified:
-          user.isEmailVerified,
-        isVerified:
-          vendor.isVerified,
+        vendorName: vendor.vendorName,
+        email: vendor.email,
+        role: vendor.role,
+        businessType: vendor.businessType,
+        shopName: vendor.shopName,
+        status: vendor.status,
+        isEmailVerified: vendor.isEmailVerified,
+        isVerified: vendor.isVerified,
+        emailVerifiedAt: vendor.emailVerifiedAt,
       },
     });
 
   } catch (error) {
-
     console.error(
       "Verify Vendor Error:",
       error
@@ -475,31 +460,47 @@ exports.vendorLogin = async (req, res) => {
       password,
     } = req.body;
 
+    // ========================================
+    // VALIDATE INPUT
+    // ========================================
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
 
     // ========================================
-    // FIND USER
+    // FIND VENDOR
     // ========================================
 
-    const user = await User.findOne({
+    const vendor = await Vendor.findOne({
       where: {
-        email,
+        email: email.trim(),
         role: "Vendor",
       },
     });
 
-    if (!user) {
+    console.log("LOGIN EMAIL:", email);
+    console.log("VENDOR FOUND:", vendor);
+
+    // ========================================
+    // VENDOR NOT FOUND
+    // ========================================
+
+    if (!vendor) {
       return res.status(404).json({
         success: false,
         message: "Vendor not found",
       });
     }
 
-
     // ========================================
     // CHECK EMAIL VERIFICATION
     // ========================================
 
-    if (!user.isEmailVerified) {
+    if (!vendor.isEmailVerified) {
       return res.status(403).json({
         success: false,
         message:
@@ -507,6 +508,45 @@ exports.vendorLogin = async (req, res) => {
       });
     }
 
+    // ========================================
+    // CHECK VENDOR VERIFICATION
+    // ========================================
+
+    if (!vendor.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Vendor account is not verified",
+      });
+    }
+
+    // ========================================
+    // CHECK STATUS
+    // ========================================
+
+    if (vendor.status === "Blocked") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Vendor account is blocked",
+      });
+    }
+
+    if (vendor.status === "Rejected") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Vendor account has been rejected",
+      });
+    }
+
+    if (vendor.status === "Pending") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Vendor account is pending approval",
+      });
+    }
 
     // ========================================
     // CHECK PASSWORD
@@ -515,49 +555,16 @@ exports.vendorLogin = async (req, res) => {
     const passwordMatch =
       await bcrypt.compare(
         password,
-        user.password
+        vendor.password
       );
 
     if (!passwordMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-
-    // ========================================
-    // FIND VENDOR
-    // ========================================
-
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor record not found",
-      });
-    }
-
-
-    // ========================================
-    // CHECK VENDOR STATUS
-    // ========================================
-
-    if (
-      vendor.status === "Blocked"
-    ) {
-      return res.status(403).json({
-        success: false,
         message:
-          "Vendor account is blocked",
+          "Invalid email or password",
       });
     }
-
 
     // ========================================
     // GENERATE JWT
@@ -565,29 +572,16 @@ exports.vendorLogin = async (req, res) => {
 
     const token = jwt.sign(
       {
-        id: user.id,
-        email: user.email,
-        role: user.role,
+        id: vendor.id,
         vendorId: vendor.id,
+        email: vendor.email,
+        role: vendor.role,
       },
-
       process.env.JWT_SECRET
-
-      // No expiresIn
     );
 
-
     // ========================================
-    // UPDATE LAST LOGIN
-    // ========================================
-
-    user.lastLogin = new Date();
-
-    await user.save();
-
-
-    // ========================================
-    // RESPONSE
+    // SUCCESS
     // ========================================
 
     return res.status(200).json({
@@ -599,38 +593,16 @@ exports.vendorLogin = async (req, res) => {
       token,
 
       data: {
-        userId: user.id,
         vendorId: vendor.id,
-
-        firstName:
-          user.firstName,
-
-        lastName:
-          user.lastName,
-
-        email:
-          user.email,
-
-        mobileNumber:
-          user.mobileNumber,
-
-        vendorName:
-          vendor.vendorName,
-
-        businessType:
-          vendor.businessType,
-
-        shopName:
-          vendor.shopName,
-
-        role:
-          user.role,
-
-        status:
-          vendor.status,
-
-        isVerified:
-          vendor.isVerified,
+        vendorName: vendor.vendorName,
+        email: vendor.email,
+        businessType: vendor.businessType,
+        shopName: vendor.shopName,
+        role: vendor.role,
+        status: vendor.status,
+        isVerified: vendor.isVerified,
+        isEmailVerified:
+          vendor.isEmailVerified,
       },
     });
 
@@ -643,8 +615,10 @@ exports.vendorLogin = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Vendor login failed",
-      error: error.message,
+      message:
+        "Vendor login failed",
+      error:
+        error.message,
     });
   }
 };
@@ -789,7 +763,6 @@ exports.updateVendor = async (req, res) => {
       vendorName,
       businessType,
       shopName,
-      dateOfBirth,
       status,
     } = req.body;
 
@@ -864,10 +837,6 @@ exports.updateVendor = async (req, res) => {
     if (shopName !== undefined)
       vendor.shopName =
         shopName;
-
-    if (dateOfBirth !== undefined)
-      vendor.dateOfBirth =
-        dateOfBirth;
 
     if (status !== undefined)
       vendor.status = status;

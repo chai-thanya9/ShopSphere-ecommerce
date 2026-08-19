@@ -4,43 +4,104 @@ const sequelize = require("../config/database");
 const Vendor = sequelize.define(
   "Vendor",
   {
+    // ========================================
+    // VENDOR ID
+    // ========================================
+
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
 
+
+
     vendorName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
 
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "vendor",
+    },
+
+
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+
+    // ========================================
+    // PASSWORD
+    // ========================================
+
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    // ========================================
+    // EMAIL OTP
+    // ========================================
+
+    emailOtp: {
+      type: DataTypes.STRING(6),
+      allowNull: true,
+    },
+
+    emailOtpExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
+    // ========================================
+    // BUSINESS TYPE
+    // ========================================
+
     businessType: {
       type: DataTypes.ENUM(
-        "Fashion", //1
-        "Electronics",//2
-        "Beauty",//3
-        "Home",//4
-        "Appliances",//6
-        "Furniture",//7
-        "Books", ///5
-        "Sports",//8
-        "Health Care",//9
-        "Groceries", //10
-        "Toys",//11
-        "Stationery",//12
-        "Musical Instruments",//13
-        "Arts & Crafts" //14
+        "Fashion",
+        "Electronics",
+        "Beauty",
+        "Home",
+        "Appliances",
+        "Furniture",
+        "Books",
+        "Sports",
+        "Health Care",
+        "Groceries",
+        "Toys",
+        "Stationery",
+        "Musical Instruments",
+        "Arts & Crafts",
+        "Mobiles",
+        "Others"
       ),
       allowNull: false,
     },
+
+    // ========================================
+    // SHOP
+    // ========================================
 
     shopName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
 
-   
+    mobileNumber: {
+      type: DataTypes.STRING(15),
+      allowNull: false,
+      unique: true,
+    },
+
+    // ========================================
+    // VENDOR STATUS
+    // ========================================
+
     status: {
       type: DataTypes.ENUM(
         "Pending",
@@ -51,11 +112,26 @@ const Vendor = sequelize.define(
       defaultValue: "Pending",
     },
 
+    // ========================================
+    // VERIFICATION
+    // ========================================
+
+    isEmailVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+
     isVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+
+    emailVerifiedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
+
   {
     tableName: "vendors",
     timestamps: true,

@@ -36,31 +36,56 @@ const readExcel = (filePath) => {
 
   const sheetName = workbook.SheetNames[0];
 
-  const worksheet = workbook.Sheets[sheetName];
+  const worksheet =
+    workbook.Sheets[sheetName];
 
-  const data = XLSX.utils.sheet_to_json(
+  return XLSX.utils.sheet_to_json(
     worksheet,
     {
       defval: "",
     }
   );
-
-  return data;
 };
 
 
 // ========================================
-// READ CSV / EXCEL
+// READ BULK FILE
 // ========================================
 
-const readBulkFile = async (filePath) => {
+const readBulkFile = async (
+  filePath,
+  originalFileName
+) => {
+
+  // Get extension from ORIGINAL filename
   const extension = path
-    .extname(filePath)
+    .extname(originalFileName)
     .toLowerCase();
+
+
+  console.log(
+    "Original file:",
+    originalFileName
+  );
+
+  console.log(
+    "Detected extension:",
+    extension
+  );
+
+
+  // ========================================
+  // CSV
+  // ========================================
 
   if (extension === ".csv") {
     return await readCSV(filePath);
   }
+
+
+  // ========================================
+  // EXCEL
+  // ========================================
 
   if (
     extension === ".xlsx" ||
@@ -68,6 +93,7 @@ const readBulkFile = async (filePath) => {
   ) {
     return readExcel(filePath);
   }
+
 
   throw new Error(
     "Only CSV, XLSX and XLS files are supported"
