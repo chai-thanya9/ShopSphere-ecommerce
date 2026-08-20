@@ -5,6 +5,7 @@ const { body } = require("express-validator");
 // ========================================
 
 exports.createAppliancesValidation = [
+
   body("productName")
     .trim()
     .notEmpty()
@@ -16,6 +17,7 @@ exports.createAppliancesValidation = [
     .withMessage("Brand name is required"),
 
   body("category")
+    .trim()
     .notEmpty()
     .withMessage("Category is required")
     .isIn([
@@ -40,35 +42,41 @@ exports.createAppliancesValidation = [
     .withMessage("Product description is required"),
 
   body("mrp")
+    .trim()
     .notEmpty()
     .withMessage("MRP is required")
     .isFloat({ min: 0 })
     .withMessage("MRP must be a valid positive number"),
 
   body("sellingPrice")
+    .trim()
     .notEmpty()
     .withMessage("Selling price is required")
     .isFloat({ min: 0 })
     .withMessage("Selling price must be a valid positive number"),
 
   body("discountPercentage")
-    .optional()
+    .optional({ values: "falsy" })
+    .trim()
     .isFloat({ min: 0, max: 100 })
     .withMessage("Discount must be between 0 and 100"),
 
   body("stock")
+    .trim()
     .notEmpty()
     .withMessage("Stock is required")
     .isInt({ min: 0 })
     .withMessage("Stock cannot be negative"),
 
   body("lowStockLimit")
-    .optional()
+    .optional({ values: "falsy" })
+    .trim()
     .isInt({ min: 0 })
     .withMessage("Low stock limit cannot be negative"),
 
   body("criticalStockLimit")
-    .optional()
+    .optional({ values: "falsy" })
+    .trim()
     .isInt({ min: 0 })
     .withMessage("Critical stock limit cannot be negative"),
 ];

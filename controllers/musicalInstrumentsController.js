@@ -12,7 +12,8 @@ exports.createMusicalInstrument = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
+        
       },
     });
 
@@ -246,7 +247,7 @@ exports.updateMusicalInstrument = async (
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -373,7 +374,7 @@ exports.deleteMusicalInstrument = async (
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 

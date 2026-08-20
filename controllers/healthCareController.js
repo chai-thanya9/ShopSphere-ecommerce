@@ -30,7 +30,7 @@ exports.createHealthCare = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -225,7 +225,7 @@ exports.updateHealthCare = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -376,7 +376,7 @@ exports.deleteHealthCare = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 

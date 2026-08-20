@@ -56,7 +56,7 @@ exports.createSports = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -280,7 +280,7 @@ exports.updateSports = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -442,7 +442,7 @@ exports.deleteSports = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 

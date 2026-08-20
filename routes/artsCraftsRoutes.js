@@ -1,10 +1,19 @@
 // routes/artsCraftsRoutes.js
 
 const express = require("express");
+const multer = require("multer");
+const bulkUpload = multer({
+  dest: "uploads/bulk/",
+});
+
+
+
+
 const router = express.Router();
 
 const {
   createArtsCrafts,
+  bulkUploadArtsCrafts,
   getAllArtsCrafts,
   getArtsCraftsById,
   updateArtsCrafts,
@@ -14,6 +23,7 @@ const {
 const {
   createArtsCraftsValidation,
   updateArtsCraftsValidation,
+  validateArtsCraftsBulkUpload,
 } = require("../middleware/artsCraftsValidation");
 
 const validateRequest = require("../middleware/validationResult");
@@ -25,7 +35,6 @@ const upload = require("../middleware/uploads");
 
 // ========================================
 // CREATE ARTS & CRAFTS
-// Vendor only
 // ========================================
 
 router.post(
@@ -39,8 +48,22 @@ router.post(
 );
 
 // ========================================
+// BULK UPLOAD ARTS & CRAFTS
+// ========================================
+
+
+
+router.post(
+  "/bulk-upload",
+  authenticate,
+  authorize("Vendor"),
+  bulkUpload.single("file"),
+  validateArtsCraftsBulkUpload,
+  bulkUploadArtsCrafts
+);
+
+// ========================================
 // GET ALL ARTS & CRAFTS
-// Public
 // ========================================
 
 router.get(
@@ -49,8 +72,7 @@ router.get(
 );
 
 // ========================================
-// GET ARTS & CRAFTS BY ID
-// Public
+// GET BY ID
 // ========================================
 
 router.get(
@@ -59,8 +81,7 @@ router.get(
 );
 
 // ========================================
-// UPDATE ARTS & CRAFTS
-// Vendor only
+// UPDATE
 // ========================================
 
 router.put(
@@ -74,8 +95,7 @@ router.put(
 );
 
 // ========================================
-// PATCH ARTS & CRAFTS
-// Vendor only
+// PATCH
 // ========================================
 
 router.patch(
@@ -89,8 +109,7 @@ router.patch(
 );
 
 // ========================================
-// DELETE ARTS & CRAFTS
-// Vendor only
+// DELETE
 // ========================================
 
 router.delete(

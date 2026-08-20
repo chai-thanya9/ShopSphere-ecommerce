@@ -12,7 +12,7 @@ exports.createStationery = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -213,7 +213,7 @@ exports.updateStationery = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -320,7 +320,7 @@ exports.deleteStationery = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 

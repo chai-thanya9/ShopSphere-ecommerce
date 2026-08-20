@@ -30,7 +30,7 @@ exports.createBook = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -208,7 +208,7 @@ exports.updateBook = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -353,7 +353,7 @@ exports.deleteBook = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 

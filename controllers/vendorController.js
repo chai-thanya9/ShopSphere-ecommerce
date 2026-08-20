@@ -583,7 +583,7 @@ exports.vendorLogin = async (req, res) => {
       await bcrypt.compare(
         password,
         vendor.password
-      );
+      ); 
 
     if (!passwordMatch) {
       return res.status(401).json({

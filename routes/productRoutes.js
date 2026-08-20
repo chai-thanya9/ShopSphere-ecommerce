@@ -1,37 +1,48 @@
 const express = require("express");
+
 const router = express.Router();
 
 const authenticate = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
 
 const {
-  getAllAppliances,
-  getApplianceById,
-} = require("../controllers/appliancesController");
+  getAllProducts,
+  getProductsByCategory,
+  getProductById,
+} = require("../controllers/productController");
 
 // ========================================
-// GET ALL APPLIANCES
+// GET ALL PRODUCTS
 // Customer + Admin
 // ========================================
 
 router.get(
   "/",
-  
   authenticate,
   authorize("Customer", "Admin"),
-  getAllAppliances
+  getAllProducts
 );
 
 // ========================================
-// GET APPLIANCE BY ID
-// Customer + Admin
+// GET PRODUCTS BY CATEGORY
 // ========================================
 
 router.get(
-  "/:id",
+  "/category/:category",
   authenticate,
   authorize("Customer", "Admin"),
-  getApplianceById
+  getProductsByCategory
+);
+
+// ========================================
+// GET PRODUCT BY ID
+// ========================================
+
+router.get(
+  "/:category/:id",
+  authenticate,
+  authorize("Customer", "Admin"),
+  getProductById
 );
 
 module.exports = router;

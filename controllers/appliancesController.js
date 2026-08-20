@@ -35,7 +35,7 @@ exports.createAppliances = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -254,7 +254,7 @@ exports.updateAppliances = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -416,7 +416,7 @@ exports.deleteAppliances = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -489,8 +489,6 @@ exports.deleteAppliances = async (req, res) => {
 // ========================================
 
 exports.bulkUploadAppliances = async (req, res) => {
-  let filePath = null;
-
   try {
     // ========================================
     // CHECK FILE
@@ -503,81 +501,19 @@ exports.bulkUploadAppliances = async (req, res) => {
       });
     }
 
-    filePath = req.file.path;
-
     console.log(
       "Bulk file:",
       req.file.originalname
     );
 
     // ========================================
-    // CHECK AUTHENTICATED USER
-    // ========================================
-
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    // ========================================
-    // FIND VENDOR
-    // ========================================
-    // req.user.id = Users_info.id
-    // Appliances.vendorId = vendors.id
-
-    const vendor = await Vendor.findOne({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor account not found",
-      });
-    }
-
-    // ========================================
-    // CHECK VENDOR STATUS
-    // ========================================
-
-    if (vendor.status !== "Approved") {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Vendor is not approved to upload products",
-        data: {
-          vendorId: vendor.id,
-          status: vendor.status,
-        },
-      });
-    }
-
-    console.log(
-      "Vendor ID:",
-      vendor.id
-    );
-
-    // ========================================
-    // READ CSV / EXCEL FILE
+    // READ FILE
     // ========================================
 
     const rows = await readBulkFile(
       req.file.path,
       req.file.originalname
     );
-
-    console.log(
-      "Total rows:",
-      rows.length
-    );
-
-    // ========================================
-    // CHECK EMPTY FILE
-    // ========================================
 
     if (!rows || rows.length === 0) {
       return res.status(400).json({
@@ -587,49 +523,25 @@ exports.bulkUploadAppliances = async (req, res) => {
     }
 
     // ========================================
-    // ARRAYS
+    // GET VENDOR ID
+    // ========================================
+    const vendorId =
+      req.user?.vendorId || req.user?.id;
+
+    if (!vendorId) {
+      return res.status(401).json({
+        success: false,
+        message: "Vendor information not found",
+      });
+    }
+
+    // ========================================
+    // PREPARE PRODUCTS
     // ========================================
 
     const validProducts = [];
-    const errors = [];
 
-    // ========================================
-    // ALLOWED CATEGORIES
-    // ========================================
-
-    const allowedCategories = [
-      "Kitchen Appliances",
-      "Home Appliances",
-      "Cleaning Appliances",
-      "Cooling Appliances",
-      "Heating Appliances",
-      "Personal Care Appliances",
-      "Other",
-    ];
-
-    // ========================================
-    // ALLOWED STATUS
-    // ========================================
-
-    const allowedStatuses = [
-      "Draft",
-      "Pending",
-      "Approved",
-      "Rejected",
-      "Blocked",
-    ];
-
-    // ========================================
-    // PROCESS EACH ROW
-    // ========================================
-
-    rows.forEach((row, index) => {
-      const rowNumber = index + 2;
-
-      // ======================================
-      // READ CSV VALUES
-      // ======================================
-
+    rows.forEach((row) => {
       const productName = String(
         row.productName || ""
       ).trim();
@@ -672,7 +584,9 @@ exports.bulkUploadAppliances = async (req, res) => {
         row.discountPercentage || 0
       );
 
-      const stock = Number(row.stock);
+      const stock = Number(
+        row.stock || 0
+      );
 
       const lowStockLimit = Number(
         row.lowStockLimit || 20
@@ -686,9 +600,9 @@ exports.bulkUploadAppliances = async (req, res) => {
         row.status || "Pending"
       ).trim();
 
-      // ======================================
-      // IMAGE URLS
-      // ======================================
+      // ========================================
+      // IMAGES
+      // ========================================
 
       const imageUrls = row.imageUrls
         ? String(row.imageUrls)
@@ -696,10 +610,6 @@ exports.bulkUploadAppliances = async (req, res) => {
             .map((item) => item.trim())
             .filter(Boolean)
         : [];
-
-      // ======================================
-      // CLOUDINARY PUBLIC IDS
-      // ======================================
 
       const cloudinaryPublicIds =
         row.cloudinaryPublicIds
@@ -709,224 +619,9 @@ exports.bulkUploadAppliances = async (req, res) => {
               .filter(Boolean)
           : [];
 
-      // ======================================
-      // REQUIRED VALIDATION
-      // ======================================
-
-      if (!productName) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "productName is required",
-        });
-
-        return;
-      }
-
-      if (!brandName) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "brandName is required",
-        });
-
-        return;
-      }
-
-      if (!category) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "category is required",
-        });
-
-        return;
-      }
-
-      if (!subCategory) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "subCategory is required",
-        });
-
-        return;
-      }
-
-      if (!productDescription) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "productDescription is required",
-        });
-
-        return;
-      }
-
-      // ======================================
-      // CATEGORY VALIDATION
-      // ======================================
-
-      if (
-        !allowedCategories.includes(
-          category
-        )
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            `Invalid category. Allowed values: ${allowedCategories.join(
-              ", "
-            )}`,
-        });
-
-        return;
-      }
-
-      // ======================================
-      // STATUS VALIDATION
-      // ======================================
-
-      if (
-        !allowedStatuses.includes(
-          status
-        )
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            `Invalid status. Allowed values: ${allowedStatuses.join(
-              ", "
-            )}`,
-        });
-
-        return;
-      }
-
-      // ======================================
-      // MRP VALIDATION
-      // ======================================
-
-      if (
-        !Number.isFinite(mrp) ||
-        mrp <= 0
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "mrp must be greater than 0",
-        });
-
-        return;
-      }
-
-      // ======================================
-      // SELLING PRICE VALIDATION
-      // ======================================
-
-      if (
-        !Number.isFinite(
-          sellingPrice
-        ) ||
-        sellingPrice <= 0
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "sellingPrice must be greater than 0",
-        });
-
-        return;
-      }
-
-      if (sellingPrice > mrp) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "sellingPrice cannot be greater than mrp",
-        });
-
-        return;
-      }
-
-      // ======================================
-      // DISCOUNT VALIDATION
-      // ======================================
-
-      if (
-        !Number.isFinite(
-          discountPercentage
-        ) ||
-        discountPercentage < 0 ||
-        discountPercentage > 100
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "discountPercentage must be between 0 and 100",
-        });
-
-        return;
-      }
-
-      // ======================================
-      // STOCK VALIDATION
-      // ======================================
-
-      if (
-        !Number.isInteger(stock) ||
-        stock < 0
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "stock must be a non-negative integer",
-        });
-
-        return;
-      }
-
-      // ======================================
-      // LOW STOCK LIMIT
-      // ======================================
-
-      if (
-        !Number.isInteger(
-          lowStockLimit
-        ) ||
-        lowStockLimit < 0
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "lowStockLimit must be a non-negative integer",
-        });
-
-        return;
-      }
-
-      // ======================================
-      // CRITICAL STOCK LIMIT
-      // ======================================
-
-      if (
-        !Number.isInteger(
-          criticalStockLimit
-        ) ||
-        criticalStockLimit < 0
-      ) {
-        errors.push({
-          row: rowNumber,
-          message:
-            "criticalStockLimit must be a non-negative integer",
-        });
-
-        return;
-      }
-
-      // ======================================
+      // ========================================
       // STOCK STATUS
-      // ======================================
+      // ========================================
 
       let stockStatus = "In Stock";
 
@@ -942,22 +637,19 @@ exports.bulkUploadAppliances = async (req, res) => {
         stockStatus = "Low Stock";
       }
 
-      // ======================================
-      // ADD VALID PRODUCT
-      // ======================================
+      // ========================================
+      // PRODUCT OBJECT
+      // ========================================
 
       validProducts.push({
-        // IMPORTANT:
-        // Vendor ID comes from authenticated
-        // vendor, NOT from CSV.
-
-        vendorId: vendor.id,
+        vendorId,
 
         productName,
         brandName,
         category,
         subCategory,
         productDescription,
+
         modelNumber,
         color,
         warranty,
@@ -979,38 +671,29 @@ exports.bulkUploadAppliances = async (req, res) => {
     });
 
     // ========================================
-    // NO VALID PRODUCTS
-    // ========================================
-
-    if (
-      validProducts.length === 0
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "No valid products found",
-
-        data: {
-          totalRows: rows.length,
-          successful: 0,
-          failed: errors.length,
-        },
-
-        errors,
-      });
-    }
-
-    // ========================================
     // BULK INSERT
     // ========================================
 
     const createdProducts =
       await Appliances.bulkCreate(
-        validProducts,
-        {
-          validate: true,
-        }
+        validProducts
       );
+
+    // ========================================
+    // REMOVE TEMP FILE
+    // ========================================
+
+    fs.unlink(
+      req.file.path,
+      (err) => {
+        if (err) {
+          console.error(
+            "File cleanup error:",
+            err
+          );
+        }
+      }
+    );
 
     // ========================================
     // SUCCESS RESPONSE
@@ -1020,66 +703,50 @@ exports.bulkUploadAppliances = async (req, res) => {
       success: true,
 
       message:
-        "Appliances bulk upload completed",
+        "Appliances bulk upload completed successfully",
 
       data: {
-        vendorId: vendor.id,
-        vendorName: vendor.vendorName,
-
         totalRows: rows.length,
-
         successful:
           createdProducts.length,
-
-        failed: errors.length,
+        failed: 0,
       },
-
-      errors,
     });
 
   } catch (error) {
-    // ========================================
-    // ERROR
-    // ========================================
 
     console.error(
       "Appliances Bulk Upload Error:",
       error
     );
 
+    // ========================================
+    // FILE CLEANUP
+    // ========================================
+
+    if (req.file?.path) {
+      fs.unlink(
+        req.file.path,
+        (err) => {
+          if (err) {
+            console.error(
+              "File cleanup error:",
+              err
+            );
+          }
+        }
+      );
+    }
+
+    // ========================================
+    // ERROR RESPONSE
+    // ========================================
+
     return res.status(500).json({
       success: false,
-
       message:
         "Appliances bulk upload failed",
-
       error: error.message,
     });
-
-  } finally {
-    // ========================================
-    // DELETE TEMPORARY FILE
-    // ========================================
-
-    if (filePath) {
-      try {
-        await fs.promises.unlink(
-          filePath
-        );
-
-        console.log(
-          "Bulk file deleted:",
-          filePath
-        );
-
-      } catch (error) {
-        if (error.code !== "ENOENT") {
-          console.error(
-            "File cleanup error:",
-            error
-          );
-        }
-      }
-    }
   }
 }; 

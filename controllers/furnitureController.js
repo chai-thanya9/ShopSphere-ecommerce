@@ -55,7 +55,7 @@ exports.createFurniture = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -282,7 +282,7 @@ exports.updateFurniture = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -445,7 +445,7 @@ exports.deleteFurniture = async (req, res) => {
 
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 

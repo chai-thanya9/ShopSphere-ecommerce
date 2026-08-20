@@ -1,0 +1,6 @@
+productName,brandName,category,subCategory,productDescription,material,color,mrp,sellingPrice,discountPercentage,stock,lowStockLimit,criticalStockLimit,stockStatus,,sku,status
+Water Color Painting Set,ArtPro,Painting,Water Colors,Professional watercolor painting set,Paper and Water Colors,Multicolor,1200,999,16.75,25,10,5,In Stock,,art001,Pending
+Sketch Pencil Set,ColorCraft,Sketching,Pencils,Complete drawing pencil set,Wood and Graphite,Black,800,650,18.75,40,10,5,In Stock,,art002,Pending
+DIY Craft Kit,CraftWorld,DIY Kits,Kids Craft Kit,Creative DIY craft kit for children,Paper and Plastic,Multicolor,1500,1199,20.07,15,10,5,In Stock,,art003,Pending
+Clay Modeling Kit,ClayArt,Clay & Modeling,Modeling Clay,Modeling clay set with tools,Clay,Multiple,1000,799,20.1,20,10,5,In Stock,,art004,Pending
+Calligraphy Starter Set,WritePro,Calligraphy,Pens,Beginner calligraphy writing set,Metal and Ink,Black,1800,1499,16.72,12,10,5,In Stock,,art005,Pending

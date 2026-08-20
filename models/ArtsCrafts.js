@@ -57,7 +57,7 @@ const ArtsCrafts = sequelize.define(
         "Clay & Modeling",
         "Handicrafts",
         "Sculpting",
-        "Calligraphy",
+        "Calligraphy",   
         "Craft Tools",
         "Art Sets",
         "Other"

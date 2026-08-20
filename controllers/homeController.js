@@ -26,7 +26,7 @@ exports.createHome = async (req, res) => {
     // Find logged-in vendor
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -213,7 +213,7 @@ exports.updateHome = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -363,7 +363,7 @@ exports.deleteHome = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+          id: req.user.vendorId,
       },
     });
 

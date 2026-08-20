@@ -2,17 +2,15 @@
 
 const ArtsCrafts = require("../models/ArtsCrafts");
 const Vendor = require("../models/Vendor");
+const fs = require("fs");
+const { readBulkFile,} = require("../utils/bulkUpload");
 
-// ========================================
-// CREATE ARTS & CRAFTS
-// Vendor only
-// ========================================
 
 exports.createArtsCrafts = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -231,7 +229,7 @@ exports.updateArtsCrafts = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -354,7 +352,7 @@ exports.deleteArtsCrafts = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({
       where: {
-        userId: req.user.id,
+        id: req.user.vendorId,
       },
     });
 
@@ -397,6 +395,212 @@ exports.deleteArtsCrafts = async (req, res) => {
       success: false,
       message: "Internal Server Error",
       error: error.message,
+    });
+  }
+};
+
+
+/// bulk upload arts and craf
+exports.bulkUploadArtsCrafts = async (req, res) => {
+  try {
+    // ========================================
+    // CHECK FILE
+    // ========================================
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "CSV or Excel file is required",
+      });
+    }
+
+    // ========================================
+    // GET VENDOR ID FROM JWT
+    // ========================================
+
+    // if (!req.vendors || !req.vendors.vendorId) {
+    //   return res.status(401).json({
+    //     success: false,
+    //     message: "Vendor authentication information not found",
+    //   });
+    // }
+
+    const vendorId = req.user.vendorId;
+
+    console.log(
+      "Arts & Crafts Bulk Upload Vendor ID:",
+      vendorId
+    );
+
+    // ========================================
+    // READ CSV / EXCEL FILE
+    // ========================================
+
+    const rows = await readBulkFile(
+      req.file.path,
+      req.file.originalname
+    );
+
+    // ========================================
+    // CHECK EMPTY FILE
+    // ========================================
+
+    if (!rows || rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "CSV or Excel file is empty",
+      });
+    }
+
+    console.log(
+      "Arts & Crafts rows received:",
+      rows.length
+    );
+
+    // ========================================
+    // PREPARE PRODUCTS
+    // ========================================
+
+    const products = rows.map((row) => ({
+      // Vendor automatically comes from JWT
+      vendorId: vendorId,
+
+      // ========================================
+      // PRODUCT INFORMATION
+      // ========================================
+
+      productName:
+        row.productName?.trim(),
+
+      brandName:
+        row.brandName?.trim() || null,
+
+      category:
+        row.category?.trim(),
+
+      subCategory:
+        row.subCategory?.trim() || null,
+
+      productDescription:
+        row.productDescription?.trim() || null,
+
+      // ========================================
+      // PRODUCT DETAILS
+      // ========================================
+
+      material:
+        row.material?.trim() || null,
+
+      color:
+        row.color?.trim() || null,
+
+      // ========================================
+      // PRICE
+      // ========================================
+
+      mrp:
+        row.mrp,
+
+      sellingPrice:
+        row.sellingPrice,
+
+      discountPercentage:
+        row.discountPercentage || 0,
+
+      // ========================================
+      // INVENTORY
+      // ========================================
+
+      stock:
+        row.stock || 0,
+
+      lowStockLimit:
+        row.lowStockLimit || 20,
+
+      criticalStockLimit:
+        row.criticalStockLimit || 5,
+
+      stockStatus:
+        row.stockStatus?.trim() ||
+        "In Stock",
+
+      // ========================================
+      // IMAGES
+      // ========================================
+
+      imageUrls: [],
+
+      cloudinaryPublicIds: [],
+
+      // ========================================
+      // STATUS
+      // ========================================
+
+      status:
+        row.status?.trim() ||
+        "Pending",
+
+      // ========================================
+      // RATINGS
+      // ========================================
+
+      averageRating: 0,
+
+      totalReviews: 0,
+    }));
+
+    // ========================================
+    // DEBUG
+    // ========================================
+
+    console.log(
+      "Products prepared for bulk insert:",
+      products
+    );
+
+    // ========================================
+    // BULK INSERT
+    // ========================================
+
+    const createdProducts =
+      await ArtsCrafts.bulkCreate(products);
+
+    // ========================================
+    // SUCCESS
+    // ========================================
+
+    return res.status(201).json({
+      success: true,
+
+      message:
+        "Arts & Crafts bulk upload successful",
+
+      count:
+        createdProducts.length,
+
+      data:
+        createdProducts,
+    });
+
+  } catch (error) {
+
+    // ========================================
+    // ERROR
+    // ========================================
+
+    console.error(
+      "Arts & Crafts Bulk Upload Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+
+      message:
+        "Arts & Crafts bulk upload failed",
+
+      error:
+        error.message,
     });
   }
 };

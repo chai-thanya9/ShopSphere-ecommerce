@@ -112,3 +112,47 @@ exports.updateArtsCraftsValidation = [
       "Discount percentage must be between 0 and 100"
     ),
 ];
+
+exports.validateArtsCraftsBulkUpload = (
+  req,
+  res,
+  next
+) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "CSV or Excel file is required",
+    });
+  }
+
+  const allowedTypes = [
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ];
+
+  const allowedExtensions = [
+    ".csv",
+    ".xls",
+    ".xlsx",
+  ];
+
+  const fileName =
+    req.file.originalname.toLowerCase();
+
+  const hasValidExtension =
+    allowedExtensions.some((extension) =>
+      fileName.endsWith(extension)
+    );
+
+  if (!hasValidExtension) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Only CSV, XLS or XLSX files are allowed",
+    });
+  }
+
+  next();
+};

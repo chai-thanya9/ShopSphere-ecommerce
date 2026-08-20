@@ -26,6 +26,7 @@ const toysRoutes = require("./routes/toysRoutes");
 const stationeryRoutes = require("./routes/stationeryRoutes");
 const musicalInstrumentsRoutes = require("./routes/musicalInstrumentsRoutes");
 const artsCraftsRoutes = require("./routes/artsCraftsRoutes");
+const productRoutes = require("./routes/productRoutes");
 
 
 
@@ -57,6 +58,8 @@ app.use("/api/stationery", stationeryRoutes);
 app.use("/api/musical-instruments", musicalInstrumentsRoutes);
 app.use("/api/arts-crafts", artsCraftsRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/products", productRoutes);
+
 
 // Test Route
 app.get("/", (req, res) => {
