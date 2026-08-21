@@ -67,29 +67,68 @@ exports.createBook = async (req, res) => {
     const cloudinaryPublicIds = [];
 
     if (req.files && req.files.length > 0) {
+
       for (const file of req.files) {
-        const uploadResult = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            {
-              folder: "shopsphere/books",
-            },
-            (error, result) => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result);
-              }
-            }
+        const uploadResult = await new Promise(
+          (resolve, reject) => {
+            const stream =
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "shopsphere/books",
+                  resource_type: "image",
+                },
+                (error, result) => {
+
+                  if (error) {
+                    console.error(
+                      "Cloudinary Error:",
+                      error
+                    );
+
+                    reject(error);
+                    return;
+                  }
+
+                  console.log(
+                    "Cloudinary Result:",
+                    result
+                  );
+
+                  resolve(result);
+                }
+              );
+
+            stream.end(file.buffer);
+          }
+        );
+
+        if (!uploadResult) {
+          throw new Error(
+            "Cloudinary did not return upload result"
           );
+        }
 
-          stream.end(file.buffer);
-        });
+        if (!uploadResult.secure_url) {
+          throw new Error(
+            "Cloudinary secure_url is missing"
+          );
+        }
 
-        coverImages.push(uploadResult.secure_url);
-        cloudinaryPublicIds.push(uploadResult.public_id);
+        // Add Cloudinary URL
+        coverImages.push(
+          uploadResult.secure_url
+        );
+
+        // Add Cloudinary public ID
+        cloudinaryPublicIds.push(
+          uploadResult.public_id
+        );
       }
     }
 
+    // ========================================
+    // CHECK IMAGE DATA BEFORE DATABASE
+    // ========================================
     // ========================================
     // CREATE BOOK
     // ========================================

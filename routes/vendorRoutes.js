@@ -30,7 +30,7 @@ const {
 router.post(
   "/create",
   authenticate,
-  authorize("Admin,vendor"),
+  authorize("Admin"),
   createVendor
 );
 
@@ -43,7 +43,7 @@ router.post(
 router.get(
   "/",
   authenticate,
-  authorize("Admin,user"),
+  authorize("Admin"),
   getAllVendors
 );
 
