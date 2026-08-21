@@ -30,7 +30,7 @@ const {
 router.post(
   "/create",
   authenticate,
-  authorize("Admin"),
+  authorize("Admin,vendor"),
   createVendor
 );
 
@@ -43,7 +43,7 @@ router.post(
 router.get(
   "/",
   authenticate,
-  authorize("Admin"),
+  authorize("Admin,user"),
   getAllVendors
 );
 
@@ -56,7 +56,7 @@ router.get(
 router.get(
   "/:id",
   authenticate,
-  authorize("Admin"),
+  authorize("Admin,user"),
   getVendorById
 );
 
@@ -69,7 +69,7 @@ router.get(
 router.patch(
   "/:id",
   authenticate,
-  authorize("Admin"),
+  authorize("Admin,vendor"),
   updateVendor
 );
 
@@ -82,7 +82,7 @@ router.patch(
 router.delete(
   "/:id",
   authenticate,
-  authorize("Admin"),
+  authorize("Admin,vendor"),
   deleteVendor
 );
 

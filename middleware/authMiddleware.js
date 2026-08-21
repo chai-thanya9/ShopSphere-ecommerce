@@ -4,25 +4,14 @@ const authenticate = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-   
-
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
-        message: "Authorization header is missing",
-      });
-    }
-
-    if (!authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Authorization must use Bearer token",
+        message: "Authentication required",
       });
     }
 
     const token = authHeader.split(" ")[1];
-
-    console.log("TOKEN RECEIVED:", !!token);
 
     const decoded = jwt.verify(
       token,
@@ -31,7 +20,6 @@ const authenticate = (req, res, next) => {
 
     console.log("DECODED TOKEN:", decoded);
 
-    // Store authenticated user
     req.user = {
       id: decoded.id,
       vendorId: decoded.vendorId,
@@ -53,4 +41,4 @@ const authenticate = (req, res, next) => {
   }
 };
 
-module.exports = authenticate;``
+module.exports = authenticate;
