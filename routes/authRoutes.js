@@ -1,37 +1,38 @@
 const express = require("express");
+
 const router = express.Router();
 
-const authenticate = require("../middleware/authMiddleware");
-const authorize = require("../middleware/roleMiddleware");
-
 const {
-  getAllAppliances,
-  getApplianceById,
-} = require("../controllers/appliancesController");
+  adminLogin,
+  registerUser,
+  sendEmailOtp,
+  verifyEmailOtp,
+  loginUser,
+} = require("../controllers/authController");
 
-// ========================================
-// GET ALL APPLIANCES
-// Customer + Admin
-// ========================================
-
-router.get(
-  "/",
-  
-  authenticate,
-  authorize("Customer", "Admin"),
-  getAllAppliances
+router.post(
+  "/admin/login",
+  adminLogin
 );
 
-// ========================================
-// GET APPLIANCE BY ID
-// Customer + Admin
-// ========================================
+router.post(
+  "/register",
+  registerUser
+);
 
-router.get(
-  "/:id",
-  authenticate,
-  authorize("Customer", "Admin"),
-  getApplianceById
+router.post(
+  "/send-otp",
+  sendEmailOtp
+);
+
+router.post(
+  "/verify-email",
+  verifyEmailOtp
+);
+
+router.post(
+  "/login",
+  loginUser
 );
 
 module.exports = router;
