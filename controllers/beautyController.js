@@ -71,7 +71,7 @@ exports.createBeauty = async (req, res) => {
     // CLOUDINARY IMAGES
     // ========================================
 
-    const Images = [];
+    const imageUrls = [];
         const cloudinaryPublicIds = [];
     
         if (req.files && req.files.length > 0) {
@@ -123,7 +123,7 @@ exports.createBeauty = async (req, res) => {
             }
     
             // Add Cloudinary URL
-            Images.push(
+            imageUrls.push(
               uploadResult.secure_url
             );
     

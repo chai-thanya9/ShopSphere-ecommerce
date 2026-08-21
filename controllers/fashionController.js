@@ -77,46 +77,7 @@ const getStockStatus = (
 
 // ========================================
 // HELPER - UPLOAD IMAGES
-// ========================================
-
-const uploadImagesToCloudinary = async (files) => {
-  const imageUrls = [];
-  const cloudinaryPublicIds = [];
-
-  if (!files || files.length === 0) {
-    return {
-      imageUrls,
-      cloudinaryPublicIds,
-    };
-  }
-
-  for (const file of files) {
-    const uploadResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: "shopsphere/fashion",
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        }
-      );
-
-      stream.end(file.buffer);
-    });
-
-    imageUrls.push(uploadResult.secure_url);
-    cloudinaryPublicIds.push(uploadResult.public_id);
-  }
-
-  return {
-    imageUrls,
-    cloudinaryPublicIds,
-  };
-};
+// ==============
 
 // ========================================
 // CREATE FASHION PRODUCT
@@ -206,26 +167,21 @@ exports.createFashion = async (req, res) => {
       category,
       subCategory,
       productDescription,
-
       material,
       fabric,
       pattern,
       fitType,
       occasion,
-
       sizes: parseArray(sizes),
       sizeChart: parseJSON(sizeChart),
       colors: parseArray(colors),
-
       mrp,
       sellingPrice,
       discountPercentage,
-
       stock: stockValue,
       lowStockLimit: lowLimit,
       criticalStockLimit: criticalLimit,
       stockStatus,
-
       imageUrls,
       cloudinaryPublicIds,
     });
