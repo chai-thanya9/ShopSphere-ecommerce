@@ -1,6 +1,7 @@
 const Furniture = require("../models/Furniture");
 const Vendor = require("../models/Vendor");
 const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
 
 // ========================================
 // STOCK STATUS
@@ -96,6 +97,7 @@ exports.createFurniture = async (req, res) => {
     const cloudinaryPublicIds = [];
 
     if (req.files && req.files.length > 0) {
+
       for (const file of req.files) {
         const uploadResult = await new Promise(
           (resolve, reject) => {
@@ -103,13 +105,26 @@ exports.createFurniture = async (req, res) => {
               cloudinary.uploader.upload_stream(
                 {
                   folder: "shopsphere/furniture",
+                  resource_type: "image",
                 },
                 (error, result) => {
+
                   if (error) {
+                    console.error(
+                      "Cloudinary Error:",
+                      error
+                    );
+
                     reject(error);
-                  } else {
-                    resolve(result);
+                    return;
                   }
+
+                  console.log(
+                    "Cloudinary Result:",
+                    result
+                  );
+
+                  resolve(result);
                 }
               );
 
@@ -117,12 +132,30 @@ exports.createFurniture = async (req, res) => {
           }
         );
 
-        imageUrls.push(uploadResult.secure_url);
+        if (!uploadResult) {
+          throw new Error(
+            "Cloudinary did not return upload result"
+          );
+        }
+
+        if (!uploadResult.secure_url) {
+          throw new Error(
+            "Cloudinary secure_url is missing"
+          );
+        }
+
+        // Add Cloudinary URL
+        imageUrls.push(
+          uploadResult.secure_url
+        );
+
+        // Add Cloudinary public ID
         cloudinaryPublicIds.push(
           uploadResult.public_id
         );
       }
     }
+
 
     // ========================================
     // CREATE FURNITURE

@@ -17,10 +17,8 @@ const {
 } = require("../middleware/electronicsValidation");
 
 const validateRequest = require("../middleware/validationResult");
-
 const authenticate = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
-
 const upload = require("../middleware/uploads");
 
 // ========================================
@@ -80,7 +78,7 @@ router.put(
 router.patch(
   "/:id",
   authenticate,
-  authorize("Vendor"),
+  authorize("vendor"),
   upload.array("images", 10),
   updateElectronicsValidation,
   validateRequest,
@@ -95,7 +93,7 @@ router.patch(
 router.delete(
   "/:id",
   authenticate,
-  authorize("Vendor"),
+  authorize("vendor"),
   deleteElectronics
 );
 

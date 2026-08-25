@@ -1,5 +1,7 @@
 const Groceries = require("../models/Groceries");
 const Vendor = require("../models/Vendor");
+const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
 
 // ========================================
 // CREATE GROCERY
@@ -49,13 +51,68 @@ exports.createGroceries = async (req, res) => {
       stockStatus = "In Stock";
     }
 
-    const imageUrls = req.files
-      ? req.files.map((file) => file.path)
-      : [];
+    const imageUrls = [];
+    const cloudinaryPublicIds = [];
 
-    const cloudinaryPublicIds = req.files
-      ? req.files.map((file) => file.filename)
-      : [];
+    if (req.files && req.files.length > 0) {
+
+      for (const file of req.files) {
+        const uploadResult = await new Promise(
+          (resolve, reject) => {
+            const stream =
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "shopsphere/groceries",
+                  resource_type: "image",
+                },
+                (error, result) => {
+
+                  if (error) {
+                    console.error(
+                      "Cloudinary Error:",
+                      error
+                    );
+
+                    reject(error);
+                    return;
+                  }
+
+                  console.log(
+                    "Cloudinary Result:",
+                    result
+                  );
+
+                  resolve(result);
+                }
+              );
+
+            stream.end(file.buffer);
+          }
+        );
+
+        if (!uploadResult) {
+          throw new Error(
+            "Cloudinary did not return upload result"
+          );
+        }
+
+        if (!uploadResult.secure_url) {
+          throw new Error(
+            "Cloudinary secure_url is missing"
+          );
+        }
+
+        // Add Cloudinary URL
+        imageUrls.push(
+          uploadResult.secure_url
+        );
+
+        // Add Cloudinary public ID
+        cloudinaryPublicIds.push(
+          uploadResult.public_id
+        );
+      }
+    }
 
     const grocery = await Groceries.create({
       vendorId: vendor.id,
