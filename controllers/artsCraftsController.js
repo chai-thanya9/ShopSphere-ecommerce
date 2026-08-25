@@ -4,6 +4,7 @@ const ArtsCrafts = require("../models/ArtsCrafts");
 const Vendor = require("../models/Vendor");
 const fs = require("fs");
 const { readBulkFile,} = require("../utils/bulkUpload");
+const cloudinary = require("../config/cloudinary");
 
 
 exports.createArtsCrafts = async (req, res) => {
@@ -81,7 +82,7 @@ exports.createArtsCrafts = async (req, res) => {
                     const stream =
                       cloudinary.uploader.upload_stream(
                         {
-                          folder: "shopsphere/books",
+                          folder: "shopsphere/artsCrafts",
                           resource_type: "image",
                         },
                         (error, result) => {

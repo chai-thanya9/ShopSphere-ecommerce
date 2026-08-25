@@ -1,6 +1,7 @@
 const Fashion = require("../models/Fashion");
 const Vendor = require("../models/Vendor");
 const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
 
 // ========================================
 // HELPER - PARSE ARRAY
@@ -146,14 +147,77 @@ exports.createFashion = async (req, res) => {
       criticalLimit
     );
 
+    const imageUrls = [];
+
+    const cloudinaryPublicIds = [];
+
+    if (req.files && req.files.length > 0) {
+
+      for (const file of req.files) {
+        const uploadResult = await new Promise(
+          (resolve, reject) => {
+            const stream =
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "shopsphere/fashion",
+                  resource_type: "image",
+                },
+                (error, result) => {
+
+                  if (error) {
+                    console.error(
+                      "Cloudinary Error:",
+                      error
+                    );
+
+                    reject(error);
+                    return;
+                  }
+
+                  console.log(
+                    "Cloudinary Result:",
+                    result
+                  );
+
+                  resolve(result);
+                }
+              );
+
+            stream.end(file.buffer);
+          }
+        );
+
+        if (!uploadResult) {
+          throw new Error(
+            "Cloudinary did not return upload result"
+          );
+        }
+
+        if (!uploadResult.secure_url) {
+          throw new Error(
+            "Cloudinary secure_url is missing"
+          );
+        }
+
+        // Add Cloudinary URL
+        imageUrls.push(
+          uploadResult.secure_url
+        );
+
+        // Add Cloudinary public ID
+        cloudinaryPublicIds.push(
+          uploadResult.public_id
+        );
+      }
+    }
+
+
+
     // ========================================
     // MULTIPLE IMAGES
     // ========================================
 
-    const {
-      imageUrls,
-      cloudinaryPublicIds,
-    } = await uploadImagesToCloudinary(req.files);
+
 
     // ========================================
     // CREATE PRODUCT

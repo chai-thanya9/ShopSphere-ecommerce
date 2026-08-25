@@ -56,7 +56,7 @@ exports.createElectronics = async (req, res) => {
     // CLOUDINARY IMAGES
     // ========================================
 
-        const Images = [];
+        const images = [];
         const cloudinaryPublicIds = [];
     
         if (req.files && req.files.length > 0) {
@@ -67,7 +67,7 @@ exports.createElectronics = async (req, res) => {
                 const stream =
                   cloudinary.uploader.upload_stream(
                     {
-                      folder: "shopsphere/books",
+                      folder: "shopsphere/electronics",
                       resource_type: "image",
                     },
                     (error, result) => {
@@ -108,7 +108,7 @@ exports.createElectronics = async (req, res) => {
             }
     
             // Add Cloudinary URL
-            Images.push(
+            images.push(
               uploadResult.secure_url
             );
     

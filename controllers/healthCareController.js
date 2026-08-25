@@ -7,148 +7,167 @@ const cloudinary = require("../config/cloudinary");
 // ========================================
 
 exports.createHealthCare = async (req, res) => {
-  try {
-    const {
-      productName,
-      brandName,
-      category,
-      subCategory,
-      productDescription,
-      manufacturer,
-      expiryDate,
-      mrp,
-      sellingPrice,
-      discountPercentage,
-      stock,
-      lowStockLimit,
-      criticalStockLimit,
-    } = req.body;
+ try {
+ const {
+ productName,
+ brandName,
+ category,
+ subCategory,
+ productDescription,
+ manufacturer,
+ expiryDate,
+ mrp,
+ sellingPrice,
+ discountPercentage,
+ stock,
+ lowStockLimit,
+ criticalStockLimit,
+ } = req.body;
 
-    // ========================================
-    // FIND LOGGED-IN VENDOR
-    // ========================================
+ // ========================================
+ // FIND LOGGED-IN VENDOR
+ // ========================================
 
-    const vendor = await Vendor.findOne({
-      where: {
-        id: req.user.vendorId,
-      },
-    });
+ const vendor = await Vendor.findOne({
+ where: {
+ id: req.user.vendorId,
+ },
+ });
 
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
+ if (!vendor) {
+ return res.status(404).json({
+ success: false,
+ message: "Vendor not found",
+ });
+ }
 
-    // ========================================
-    // STOCK STATUS
-    // ========================================
+ // ========================================
+ // STOCK STATUS
+ // ========================================
 
-    const stockValue = Number(stock);
+ const stockValue = Number(stock);
 
-    const lowLimit =
-      lowStockLimit !== undefined
-        ? Number(lowStockLimit)
-        : 20;
+ let stockStatus = "In Stock";
 
-    const criticalLimit =
-      criticalStockLimit !== undefined
-        ? Number(criticalStockLimit)
-        : 5;
+ if (stockValue === 0) {
+ stockStatus = "Out of Stock";
+ } else if (stockValue < Number(criticalStockLimit || 5)) {
+ stockStatus = "Critical Stock";
+ } else if (stockValue < Number(lowStockLimit || 20)) {
+ stockStatus = "Low Stock";
+ }
 
-    let stockStatus = "In Stock";
+ // ========================================
+ // CLOUDINARY IMAGES
+ // ========================================
 
-    if (stockValue === 0) {
-      stockStatus = "Out of Stock";
-    } else if (stockValue <= criticalLimit) {
-      stockStatus = "Critical Stock";
-    } else if (stockValue < lowLimit) {
-      stockStatus = "Low Stock";
-    }
+ const imageUrls = [];
+ const cloudinaryPublicIds = [];
 
-    // ========================================
-    // CLOUDINARY IMAGES
-    // ========================================
+ if (req.files && req.files.length > 0) {
+ for (const file of req.files) {
+ const uploadResult = await new Promise(
+ (resolve, reject) => {
+ const stream =
+ cloudinary.uploader.upload_stream(
+ {
+ folder: "shopsphere/health-care",
+ resource_type: "image",
+ },
+ (error, result) => {
+ if (error) {
+ console.error(
+ "Cloudinary Error:",
+ error
+ );
 
-    const imageUrls = [];
-    const cloudinaryPublicIds = [];
+ reject(error);
+ return;
+ }
 
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const uploadResult = await new Promise(
-          (resolve, reject) => {
-            const stream =
-              cloudinary.uploader.upload_stream(
-                {
-                  folder: "shopsphere/health-care",
-                },
-                (error, result) => {
-                  if (error) {
-                    reject(error);
-                  } else {
-                    resolve(result);
-                  }
-                }
-              );
+ console.log(
+ "Cloudinary Result:",
+ result
+ );
 
-            stream.end(file.buffer);
-          }
-        );
+ resolve(result);
+ }
+ );
 
-        imageUrls.push(uploadResult.secure_url);
-        cloudinaryPublicIds.push(
-          uploadResult.public_id
-        );
-      }
-    }
+ stream.end(file.buffer);
+ }
+ );
 
-    // ========================================
-    // CREATE PRODUCT
-    // ========================================
+ if (!uploadResult) {
+ throw new Error(
+ "Cloudinary did not return upload result"
+ );
+ }
 
-    const healthCare = await HealthCare.create({
-      vendorId: vendor.id,
+ if (!uploadResult.secure_url) {
+ throw new Error(
+ "Cloudinary secure_url is missing"
+ );
+ }
 
-      productName,
-      brandName,
-      category,
-      subCategory,
-      productDescription,
-      manufacturer,
-      expiryDate,
+ // Add Cloudinary URL
+ imageUrls.push(
+ uploadResult.secure_url
+ );
 
-      mrp,
-      sellingPrice,
-      discountPercentage,
+ // Add Cloudinary public ID
+ cloudinaryPublicIds.push(
+ uploadResult.public_id
+ );
+ }
+ }
 
-      stock: stockValue,
-      lowStockLimit: lowLimit,
-      criticalStockLimit: criticalLimit,
-      stockStatus,
+ // ========================================
+ // CREATE HEALTH CARE PRODUCT
+ // ========================================
 
-      imageUrls,
-      cloudinaryPublicIds,
-    });
+ const healthCare = await HealthCare.create({
+ vendorId: vendor.id,
+ productName,
+ brandName,
+ category,
+ subCategory,
+ productDescription,
+ manufacturer,
+ expiryDate,
+ mrp,
+ sellingPrice,
+ discountPercentage,
+ stock: stockValue,
+ lowStockLimit: Number(
+ lowStockLimit || 20
+ ),
+ criticalStockLimit: Number(
+ criticalStockLimit || 5
+ ),
+ stockStatus,
+ imageUrls,
+ cloudinaryPublicIds,
+ });
 
-    return res.status(201).json({
-      success: true,
-      message: "Health Care Product Added Successfully",
-      data: healthCare,
-    });
-  } catch (error) {
-    console.error(
-      "Create Health Care Error:",
-      error
-    );
+ return res.status(201).json({
+ success: true,
+ message: "Health care product created successfully",
+ data: healthCare,
+ });
+ } catch (error) {
+ console.error(
+ "Create Health Care Error:",
+ error
+ );
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
-};
+ return res.status(500).json({
+ success: false,
+ message: "Internal Server Error",
+ error: error.message,
+ });
+ }
+ };
 
 // ========================================
 // GET ALL HEALTH CARE PRODUCTS

@@ -82,7 +82,7 @@ exports.createBeauty = async (req, res) => {
                 const stream =
                   cloudinary.uploader.upload_stream(
                     {
-                      folder: "shopsphere/books",
+                      folder: "shopsphere/beauty",
                       resource_type: "image",
                     },
                     (error, result) => {
